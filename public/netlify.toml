@@ -1,16 +1,15 @@
 [build]
   publish = "public"
-  # This command generates the public/env-config.js file with Firebase credentials
-  # It uses printf for a more robust way to include environment variables.
-  command = "printf 'window.FIREBASE_CONFIG = {\\n  apiKey: \\'%s\\',\\n  authDomain: \\'%s\\',\\n  projectId: \\'%s\\',\\n  storageBucket: \\'%s\\',\\n  messagingSenderId: \\'%s\\',\\n  appId: \\'%s\\',\\n  measurementId: \\'%s\\'\\n};' \"$FIREBASE_API_KEY\" \"$FIREBASE_AUTH_DOMAIN\" \"$FIREBASE_PROJECT_ID\" \"$FIREBASE_STORAGE_BUCKET\" \"$FIREBASE_MESSAGING_SENDER_ID\" \"$FIREBASE_APP_ID\" \"$FIREBASE_MEASUREMENT_ID\" > ./public/env-config.js"
+  # No explicit command needed here for env var injection with this HTML setup.
+  # Netlify will automatically perform string replacement on %VITE_VAR% placeholders.
 
 [context.production.environment]
-  # These are declarations for Netlify environment variables.
-  # Their ACTUAL values MUST be set in the Netlify UI.
-  FIREBASE_API_KEY = ""
-  FIREBASE_AUTH_DOMAIN = ""
-  FIREBASE_PROJECT_ID = ""
-  FIREBASE_STORAGE_BUCKET = ""
-  FIREBASE_MESSAGING_SENDER_ID = ""
-  FIREBASE_APP_ID = ""
-  FIREBASE_MEASUREMENT_ID = ""
+  # These variables will be made available during the build process
+  # and automatically injected into your HTML if referenced correctly.
+  VITE_FIREBASE_API_KEY = ""
+  VITE_FIREBASE_AUTH_DOMAIN = ""
+  VITE_FIREBASE_PROJECT_ID = ""
+  VITE_FIREBASE_STORAGE_BUCKET = ""
+  VITE_FIREBASE_MESSAGING_SENDER_ID = ""
+  VITE_FIREBASE_APP_ID = ""
+  VITE_FIREBASE_MEASUREMENT_ID = ""
