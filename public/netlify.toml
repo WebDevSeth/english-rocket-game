@@ -1,0 +1,5 @@
+[build]
+  publish = "public"
+  # Netlify will automatically substitute %VITE_VARIABLE_NAME% placeholders
+  # in your HTML with environment variables defined in the Netlify UI.
+  # No complex build command is needed for this method to work.

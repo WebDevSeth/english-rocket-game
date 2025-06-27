@@ -352,19 +352,24 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // IMPORTANT: These Firebase configuration values are currently hardcoded for immediate functionality.
-        // In the next step, we will replace these with Netlify environment variables securely.
-        const appId = 'word-rocket-game'; // Your Firebase projectId (can be hardcoded)
+        // Firebase configuration will be injected by Netlify at build time.
+        // The '%VITE_...' syntax ensures Netlify replaces these placeholders.
         const firebaseConfig = {
-            apiKey: "AIzaSyAtUGAcPzXK0eIWlvuaUpkoqRM7_Q-jbX4",
-            authDomain: "word-rocket-game.firebaseapp.com",
-            projectId: "word-rocket-game",
-            storageBucket: "word-rocket-game.firebaseapp.com",
-            messagingSenderId: "1009900144925",
-            appId: "1:1009900144925:web:8cccae317ed2224d37f9f4",
-            measurementId: "G-92RMJ5LYM4"
+            apiKey: '%VITE_FIREBASE_API_KEY%',
+            authDomain: '%VITE_FIREBASE_AUTH_DOMAIN%',
+            projectId: '%VITE_FIREBASE_PROJECT_ID%',
+            storageBucket: '%VITE_FIREBASE_STORAGE_BUCKET%',
+            messagingSenderId: '%VITE_FIREBASE_MESSAGING_SENDER_ID%',
+            appId: '%VITE_FIREBASE_APP_ID%',
+            measurementId: '%VITE_FIREBASE_MEASUREMENT_ID%'
         };
         
+        // The appId can be derived from projectId or hardcoded if it's constant.
+        // It's safe to use a fallback here for local development if not using a build tool.
+        const appId = firebaseConfig.projectId && firebaseConfig.projectId.includes('VITE_') === false
+                      ? firebaseConfig.projectId
+                      : 'word-rocket-game'; // Default projectId if env var not injected
+
         // initialAuthToken is only provided by the Canvas environment, not needed for Netlify deployment
         const initialAuthToken = null; 
 
@@ -1449,7 +1454,11 @@
             createStars(50); // Create 50 stars
 
             // Initialize Firebase
-            if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId) {
+            // Check if firebaseConfig has actual values (not placeholders from local dev)
+            // The includes('VITE_') === false check ensures placeholders have been replaced by Netlify
+            const isFirebaseConfigProvided = firebaseConfig.apiKey && firebaseConfig.apiKey.includes('VITE_') === false;
+
+            if (isFirebaseConfigProvided) {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -1474,8 +1483,8 @@
                     showStartScreen(); // Show the start screen after auth state is determined
                 });
             } else {
-                console.error("Firebase initialization skipped: Configuration is missing or incomplete. This is likely due to an issue with loading the firebaseConfig object.");
-                showMessageBox("Error: Game could not load Firebase configuration. Please ensure firebaseConfig is correctly defined.", 'error');
+                console.error("Firebase initialization skipped: Configuration is missing or incomplete (placeholders found). Ensure environment variables are set correctly on Netlify (VITE_ prefix) and that your netlify.toml is correctly configured or absent to allow Netlify's automatic injection.");
+                showMessageBox("Error: Game could not load Firebase configuration. Please check Netlify deployment.", 'error');
                 isAuthReady = false; // Ensure auth is marked as not ready
                 updateAuthUI(null); 
                 showStartScreen(); // Always show start screen even if Firebase fails
