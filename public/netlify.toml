@@ -1,0 +1,17 @@
+[build]
+  publish = "public"
+  # This command explicitly creates 'public/_netlify_firebase_config.js' during the build.
+  # It uses Netlify environment variables directly for reliable injection into a global object.
+  command = """
+    echo "window.firebaseConfig = {" > ./public/_netlify_firebase_config.js
+    echo "  apiKey: \"$FIREBASE_API_KEY\"," >> ./public/_netlify_firebase_config.js
+    echo "  authDomain: \"$FIREBASE_AUTH_DOMAIN\"," >> ./public/_netlify_firebase_config.js
+    echo "  projectId: \"$FIREBASE_PROJECT_ID\"," >> ./public/_netlify_firebase_config.js
+    echo "  storageBucket: \"$FIREBASE_STORAGE_BUCKET\"," >> ./public/_netlify_firebase_config.js
+    echo "  messagingSenderId: \"$FIREBASE_MESSAGING_SENDER_ID\"," >> ./public/_netlify_firebase_config.js
+    echo "  appId: \"$FIREBASE_APP_ID\"," >> ./public/_netlify_firebase_config.js
+    echo "  measurementId: \"$FIREBASE_MEASUREMENT_ID\"" >> ./public/_netlify_firebase_config.js
+    echo "};" >> ./public/_netlify_firebase_config.js
+  """
+
+# Environment variables set in Netlify UI will be available to the build command.
