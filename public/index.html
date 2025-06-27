@@ -274,7 +274,7 @@
             <p class="text-xl mb-8 desktop-controls-info">Use ⬅️ and ➡️ arrow keys or A and D to move.</p>
 
             <div id="authDisplay" class="flex flex-col items-center gap-4">
-                <p id="welcomeMessage" class="text-3xl font-bold mb-4"></p>
+                <p id="welcomeMessage" class="text-3xl font-bold mb-4">Please log in or register to play!</p>
                 <div id="authButtons" class="flex gap-4 mb-4">
                     <button id="loginButton" class="game-button">Login</button>
                     <button id="registerButton" class="game-button">Register</button>
@@ -466,12 +466,12 @@
         let app;
         let db;
         let auth;
-        let userId = 'anonymous'; // Default user ID
+        let userId = null; // Changed to null as anonymous is removed
         let currentUserData = { // Data stored per user
             gamesPlayed: 0,
             highestScore: 0,
             lastPlayed: null,
-            userName: 'Anonymous'
+            userName: 'Guest' // Default to 'Guest' if not logged in
         };
         let isAuthReady = false; // Flag to indicate Firebase auth state is ready
 
@@ -555,7 +555,7 @@
             cancelAnimationFrame(animationFrameId);
             clearInterval(letterSpawnIntervalId); 
             clearInterval(timerIntervalId);
-            updateAuthUI(auth.currentUser && !auth.currentUser.isAnonymous); // Update based on current auth state
+            updateAuthUI(auth.currentUser); // Update based on current auth state (null if not logged in)
         }
 
         function showLoginModal() {
@@ -612,25 +612,26 @@
 
         /**
          * Updates the UI based on user's authentication status.
-         * @param {boolean} isLoggedIn - True if a user is logged in, false otherwise.
+         * @param {object|null} user - The Firebase User object or null if not logged in.
          */
-        function updateAuthUI(isLoggedIn) {
-            if (isLoggedIn) {
+        function updateAuthUI(user) {
+            if (user) { // User is logged in (not anonymous, as that's removed)
+                userId = user.uid; // Make sure userId is set from the authenticated user
                 welcomeMessage.textContent = `Welcome, ${currentUserData.userName}!`;
                 authButtons.classList.add('hidden');
                 logoutButton.classList.remove('hidden');
                 playButton.classList.remove('hidden'); // Show play button when logged in
-                // userIdDisplay.textContent = `User ID: ${userId}`; // Removed to hide ID
-                console.log("User logged in with ID:", userId); // Log to console instead
+                console.log("User logged in with ID:", userId);
                 showMessageBox(`Logged in as ${currentUserData.userName}`, 'success');
-            } else {
-                welcomeMessage.textContent = ``;
+            } else { // User is not logged in
+                userId = null; // Explicitly set to null
+                currentUserData.userName = 'Guest'; // Default name for unauthenticated users
+                welcomeMessage.textContent = `Please log in or register to play!`; // Prompt for login
                 authButtons.classList.remove('hidden');
                 logoutButton.classList.add('hidden');
-                playButton.classList.add('hidden'); // Hide play button when logged out/anonymous
-                // userIdDisplay.textContent = `User ID: ${userId}`; // Removed to hide ID
-                console.log("User logged in as Anonymous with ID:", userId); // Log to console instead
-                showMessageBox(`Logged in as Anonymous. Login or Register to save your progress!`, 'info');
+                playButton.classList.add('hidden'); // Hide play button when not logged in
+                console.log("User is not logged in.");
+                showMessageBox(`You are not logged in. Please login or register to save your progress!`, 'info');
             }
         }
 
@@ -639,8 +640,8 @@
          * @param {string} uid - The user's Firebase UID.
          */
         async function fetchUserData(uid) {
-            if (!isAuthReady || !uid || uid === 'anonymous') {
-                console.warn("Firebase not ready or anonymous user, skipping user data fetch.");
+            if (!isAuthReady || !uid) { // uid can be null if not logged in, only fetch if valid UID
+                console.warn("Firebase not ready or no valid user ID, skipping user data fetch.");
                 return;
             }
             try {
@@ -666,8 +667,8 @@
          * @param {string} uid - The user's Firebase UID.
          */
         async function saveUserData(uid) {
-            if (!isAuthReady || !uid || uid === 'anonymous') {
-                console.warn("Firebase not ready or anonymous user, skipping user data save.");
+            if (!isAuthReady || !uid) { // uid can be null, only save if valid UID exists
+                console.warn("Firebase not ready or no valid user ID, skipping user data save.");
                 return;
             }
             try {
@@ -701,7 +702,7 @@
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                userId = user.uid;
+                userId = user.uid; // Update global userId
                 currentUserData.userName = email.split('@')[0]; // Use part of email as default username
                 await saveUserData(userId); // Save initial user data
                 showMessageBox('Registration successful! You are now logged in.', 'success');
@@ -736,7 +737,7 @@
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                userId = user.uid;
+                userId = user.uid; // Update global userId
                 await fetchUserData(userId); // Fetch existing user data
                 showMessageBox('Login successful!', 'success');
                 showStartScreen(); // Go back to start screen after login
@@ -760,8 +761,8 @@
         async function handleLogout() {
             try {
                 await signOut(auth);
-                userId = 'anonymous'; // Reset userId on logout
-                currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Anonymous' };
+                userId = null; // Reset userId on logout
+                currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest' }; // Reset user data
                 showMessageBox('Logged out successfully.', 'info');
                 showStartScreen(); // Return to start screen
             } catch (error) {
@@ -824,10 +825,10 @@
 
         /**
          * Updates the global leaderboard with the current user's highest score.
-         * Only updates if the user is not anonymous and has a new highest score.
+         * Only updates if the user is not authenticated or has a new highest score.
          */
         async function updateLeaderboard() {
-            if (userId === 'anonymous' || currentUserData.highestScore === 0) return; // Only save if a registered user and has played
+            if (!userId || currentUserData.highestScore === 0) return; // Only save if a user is authenticated and has a score
 
             try {
                 const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboard`, userId);
@@ -863,8 +864,8 @@
          * Initializes and starts the game.
          */
         function startGame() {
-            // Only start game if a non-anonymous user is logged in
-            if (userId === 'anonymous' || !auth.currentUser || auth.currentUser.isAnonymous) {
+            // Only start game if a non-null user ID exists (i.e., user is logged in)
+            if (!userId) { // If userId is null, it means no one is logged in
                 showMessageBox("Please login or register to play!", 'error');
                 return;
             }
@@ -891,8 +892,8 @@
             currentLetterSpawnInterval = 1200; // Initialized here
             nextSpeedIncreaseScore = SCORE_FOR_SPEED_INCREASE; // Reset speed increase threshold
 
-            // Update user's games played count
-            if (userId !== 'anonymous' && isAuthReady) {
+            // Update user's games played count (only for logged-in users, userId won't be null)
+            if (isAuthReady) { // isAuthReady check is sufficient, as userId will be valid here
                 currentUserData.gamesPlayed = (currentUserData.gamesPlayed || 0) + 1;
                 currentUserData.lastPlayed = new Date().toISOString();
                 saveUserData(userId); // Save updated gamesPlayed
@@ -927,13 +928,13 @@
             clearInterval(timerIntervalId);
             // playSound(gameOverSound); // Play game over sound - removed as no assets
 
-            // Update user's highest score if current score is better
-            if (userId !== 'anonymous' && isAuthReady && score > (currentUserData.highestScore || 0)) {
+            // Update user's highest score if current score is better (only for logged-in users)
+            if (userId && isAuthReady && score > (currentUserData.highestScore || 0)) {
                 currentUserData.highestScore = score;
                 saveUserData(userId); // Save new highest score
                 updateLeaderboard(); // Update global leaderboard
-            } else if (userId !== 'anonymous' && isAuthReady) {
-                saveUserData(userId); // Save last played and games played if no new high score
+            } else if (userId && isAuthReady) { // Also save last played and games played if no new high score
+                saveUserData(userId);
             }
 
             // Display game over screen
@@ -1001,10 +1002,9 @@
                         letterObj.element.classList.add('missed'); // Apply visual missed effect
                         // playSound(missSound); // Play miss sound - removed as no assets
                         shouldRemoveLetter = true; // Mark for removal if it falls off
-                        // FIX: REMOVED LIVES DEDUCTION FOR MISSED LETTERS
-                        // lives--; // REMOVED: Lose a life for missed letter
+                        // Lives are NO LONGER deducted if a letter just falls off the screen.
                         updateUI();
-                        if (lives <= 0) { // Still check if lives are zero from incorrect catches
+                        if (lives <= 0) { // Still check if lives are zero (from incorrect catches)
                             gameOver("Out of Lives!");
                             return; // Stop game loop if game over
                         }
@@ -1172,7 +1172,7 @@
                 return true; // Indicate letter should be removed
             } else {
                 // Incorrect letter caught
-                lives--; // FIX: Lives deducted only for incorrect letters caught
+                lives--; // Lives deducted only for incorrect letters caught by the rocket
                 updateUI();
                 // playSound(missSound); // Play miss sound - removed as no assets
                 if (lives <= 0) {
@@ -1263,7 +1263,7 @@
          * Called once per frame in gameLoop.
          */
         function updateRocketMove() {
-            if (isPaused) return; // Added check for isPaused
+            if (!gameRunning || isPaused) return; // Added check for isPaused
 
             let moveAmount = 0;
             let rotationOffset = 0; // Offset from base rotation
@@ -1427,46 +1427,23 @@
             db = getFirestore(app);
             auth = getAuth(app);
 
-            // Sign in with custom token or anonymously
+            // Sign in with custom token or anonymously - REMOVED ANONYMOUS SIGN-IN
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
                     isAuthReady = true; // Firebase is ready
                     console.log("Firebase Auth state changed. User ID:", userId);
-                    if (!user.isAnonymous) { // If it's a real user, try to get user data
-                        await fetchUserData(userId);
-                    } else {
-                        currentUserData.userName = 'Anonymous'; // Default for anonymous users
-                    }
-                    updateAuthUI(true); // Update UI for logged-in state
+                    // No more check for anonymous, if user exists, treat as logged in
+                    currentUserData.userName = user.email ? user.email.split('@')[0] : 'User'; // Use email part as username
+                    await fetchUserData(userId);
+                    updateAuthUI(user); // Pass the user object to updateAuthUI
                 } else {
-                    // User is signed out or not yet signed in.
-                    // If initialAuthToken is present, attempt custom token sign-in first.
-                    // Otherwise, sign in anonymously.
-                    if (initialAuthToken) {
-                        try {
-                            await signInWithCustomToken(auth, initialAuthToken);
-                            console.log("Signed in with custom token.");
-                        } catch (error) {
-                            console.error("Error signing in with custom token:", error);
-                            await signInAnonymously(auth); // Fallback to anonymous
-                            console.log("Signed in anonymously due to custom token error.");
-                        }
-                    } else {
-                        // FIX: Ensure signInAnonymously is correctly awaited and handled.
-                        try {
-                            await signInAnonymously(auth);
-                            console.log("Signed in anonymously.");
-                        } catch (error) {
-                            console.error("Error signing in anonymously:", error);
-                            // It's possible anonymous auth is not enabled, leading to auth/admin-restricted-operation
-                            showMessageBox(`Auth Error: ${error.message}. Please enable Anonymous Auth in Firebase.`, 'error');
-                        }
-                    }
-                    userId = auth.currentUser?.uid || 'anonymous'; // Fallback
-                    currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Anonymous' };
-                    isAuthReady = true; // Firebase is ready even for anonymous
-                    updateAuthUI(false); // Update UI for logged-out/anonymous state
+                    // No user logged in, explicitly set userId to null
+                    userId = null;
+                    currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest' };
+                    isAuthReady = true; // Firebase is ready for unauthenticated state too
+                    updateAuthUI(null); // Pass null to indicate no user
+                    console.log("User is not logged in. Prompting for sign-in/registration.");
                 }
                 showStartScreen(); // Show the start screen after auth state is determined
             });
