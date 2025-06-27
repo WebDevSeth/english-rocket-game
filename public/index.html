@@ -390,12 +390,7 @@
             "FLOWER", "TREE", "GRASS", "LEAF", "ROOT", "BRANCH", "BLOSSOM", "SEED", "FRUIT", "VEGETABLE"
         ];
         const ROCKET_SPEED = 10; // Pixels per frame
-        const LETTER_FALL_SPEED_INITIAL = 1.5; // Pixels per frame
-        const LETTER_FALL_SPEED_INCREMENT_PER_WORD = 0.05; // How much speed increases per completed word
-        const LETTER_FALL_SPEED_INCREMENT_PER_SCORE = 0.10; // How much speed increases per score milestone
         const LETTER_FALL_SPEED_MAX = 25; // Maximum fall speed
-        const LETTER_SPAWN_INTERVAL_INITIAL = 1200; // Milliseconds
-        const LETTER_SPAWN_INTERVAL_DECREMENT = 50; // Milliseconds decrement per word
         const GAME_DURATION_SECONDS = 60;
         const INITIAL_LIVES = 5;
         const SCORE_FOR_SPEED_INCREASE = 10; // Score points needed to increase speed
@@ -452,6 +447,14 @@
         let animationFrameId;
         let letterSpawnIntervalId; 
         let timerIntervalId;
+
+        // ====== FIX: ADDED MISSING GLOBAL GAME STATE VARIABLES HERE ======
+        let fallingLetters = []; // Array to hold falling letter objects
+        let letterIdCounter = 0; // Counter for unique letter IDs
+        let currentLetterFallSpeed = 0; // Will be initialized in startGame
+        let currentLetterSpawnInterval = 0; // Will be initialized in startGame
+        let nextSpeedIncreaseScore = 0; // Will be initialized in startGame
+        // =================================================================
 
         // Removed Audio elements (catchSound, missSound, wordCompleteSound, gameOverSound)
         // as per user request to not use assets.
@@ -598,6 +601,10 @@
             isPaused = false;
             pauseScreen.classList.remove('active');
             animationFrameId = requestAnimationFrame(gameLoop);
+            // FIX: Ensure currentLetterSpawnInterval is initialized before use here
+            if (currentLetterSpawnInterval === 0) { // Safety check, should be set by startGame
+                currentLetterSpawnInterval = LETTER_SPAWN_INTERVAL_INITIAL;
+            }
             letterSpawnIntervalId = setInterval(spawnLetter, currentLetterSpawnInterval);
             timerIntervalId = setInterval(updateTimer, 1000);
         }
@@ -874,13 +881,17 @@
             isPaused = false; // Ensure game is not paused on start
 
             // Clear any existing letters
-            fallingLetters.forEach(letter => letter.element.remove());
+            // FIX: Ensure fallingLetters is initialized before forEach
+            if (fallingLetters && fallingLetters.length > 0) {
+                fallingLetters.forEach(letter => letter.element.remove());
+            }
             fallingLetters = [];
             letterIdCounter = 0;
 
             // Reset difficulty
-            currentLetterFallSpeed = LETTER_FALL_SPEED_INITIAL; 
-            currentLetterSpawnInterval = LETTER_SPAWN_INTERVAL_INITIAL; 
+            // FIX: Use defined initial values
+            currentLetterFallSpeed = 1.5; // Initialized here
+            currentLetterSpawnInterval = 1200; // Initialized here
             nextSpeedIncreaseScore = SCORE_FOR_SPEED_INCREASE; // Reset speed increase threshold
 
             // Update user's games played count
@@ -917,7 +928,7 @@
             cancelAnimationFrame(animationFrameId);
             clearInterval(letterSpawnIntervalId); 
             clearInterval(timerIntervalId);
-            playSound(gameOverSound); // Play game over sound
+            // playSound(gameOverSound); // Play game over sound - removed as no assets
 
             // Update user's highest score if current score is better
             if (userId !== 'anonymous' && isAuthReady && score > (currentUserData.highestScore || 0)) {
@@ -954,8 +965,8 @@
             updateUI(); // Update UI immediately to show new timer value
 
             // Increase difficulty for the next word (this is separate from score-based speed increase)
-            currentLetterFallSpeed = Math.min(currentLetterFallSpeed + LETTER_FALL_SPEED_INCREMENT_PER_WORD, LETTER_FALL_SPEED_MAX); 
-            currentLetterSpawnInterval = Math.max(currentLetterSpawnInterval - LETTER_SPAWN_INTERVAL_DECREMENT, 300); // Min interval
+            currentLetterFallSpeed = Math.min(currentLetterFallSpeed + 0.05, LETTER_FALL_SPEED_MAX); // Used const here directly for clarity
+            currentLetterSpawnInterval = Math.max(currentLetterSpawnInterval - 50, 300); // Min interval
             clearInterval(letterSpawnIntervalId); 
             letterSpawnIntervalId = setInterval(spawnLetter, currentLetterSpawnInterval); 
             
@@ -975,6 +986,7 @@
             const lettersToKeep = []; 
 
             // Update falling letters
+            // FIX: Ensure fallingLetters is initialized before for loop
             for (let i = 0; i < fallingLetters.length; i++) { 
                 const letterObj = fallingLetters[i]; 
                 let shouldRemoveLetter = false; 
@@ -991,7 +1003,7 @@
 
                     if (letterObj.y > gameContainerHeight) {
                         letterObj.element.classList.add('missed'); // Apply visual missed effect
-                        playSound(missSound); // Play miss sound (no effect as removed)
+                        // playSound(missSound); // Play miss sound - removed as no assets
                         shouldRemoveLetter = true; // Mark for removal if it falls off
                         lives--; // Lose a life for missed letter
                         updateUI();
@@ -1131,11 +1143,11 @@
                 // Correct letter caught
                 currentSpelledLetters[nextCorrectLetterIndex] = true;
                 score += 10; // Award points
-                playSound(catchSound); // Play catch sound (no effect as removed)
+                // playSound(catchSound); // Play catch sound - removed as no assets
 
                 // Check for score-based speed increase
                 if (score >= nextSpeedIncreaseScore) {
-                    currentLetterFallSpeed = Math.min(currentLetterFallSpeed + LETTER_FALL_SPEED_INCREMENT_PER_SCORE, LETTER_FALL_SPEED_MAX); 
+                    currentLetterFallSpeed = Math.min(currentLetterFallSpeed + 0.10, LETTER_FALL_SPEED_MAX); // Used const here directly for clarity
                     nextSpeedIncreaseScore += SCORE_FOR_SPEED_INCREASE; // Set next milestone
                     console.log(`Speed increased! New speed: ${currentLetterFallSpeed.toFixed(2)}, Next milestone: ${nextSpeedIncreaseScore}`);
                 }
@@ -1147,14 +1159,16 @@
                 if (currentSpelledLetters.every(s => s === true)) {
                     score += 50; // Bonus for completing word
                     updateUI();
-                    playSound(wordCompleteSound); // Play word complete sound (no effect as removed)
+                    // playSound(wordCompleteSound); // Play word complete sound - removed as no assets
                     
                     // Remove all existing falling letters visually to clear the screen for the next word
-                    fallingLetters.forEach(obj => {
-                        if (obj.element.parentNode) {
-                            obj.element.remove();
-                        }
-                    });
+                    if (fallingLetters && fallingLetters.length > 0) { // Safety check
+                        fallingLetters.forEach(obj => {
+                            if (obj.element.parentNode) {
+                                obj.element.remove();
+                            }
+                        });
+                    }
                     fallingLetters = []; // Explicitly clear the array for the next word
                     setTimeout(loadNextWord, 1000); // Load next word after a short delay
                 }
@@ -1163,7 +1177,7 @@
                 // Incorrect letter caught
                 lives--; 
                 updateUI();
-                playSound(missSound); // Play miss sound (no effect as removed)
+                // playSound(missSound); // Play miss sound - removed as no assets
                 if (lives <= 0) {
                     gameOver("Out of Lives!");
                 }
@@ -1442,8 +1456,15 @@
                             console.log("Signed in anonymously due to custom token error.");
                         }
                     } else {
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously.");
+                        // FIX: Ensure signInAnonymously is correctly awaited and handled.
+                        try {
+                            await signInAnonymously(auth);
+                            console.log("Signed in anonymously.");
+                        } catch (error) {
+                            console.error("Error signing in anonymously:", error);
+                            // It's possible anonymous auth is not enabled, leading to auth/admin-restricted-operation
+                            showMessageBox(`Auth Error: ${error.message}. Please enable Anonymous Auth in Firebase.`, 'error');
+                        }
                     }
                     userId = auth.currentUser?.uid || 'anonymous'; // Fallback
                     currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Anonymous' };
