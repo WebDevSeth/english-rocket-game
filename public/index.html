@@ -448,13 +448,12 @@
         let letterSpawnIntervalId; 
         let timerIntervalId;
 
-        // ====== FIX: ADDED MISSING GLOBAL GAME STATE VARIABLES HERE ======
         let fallingLetters = []; // Array to hold falling letter objects
         let letterIdCounter = 0; // Counter for unique letter IDs
         let currentLetterFallSpeed = 0; // Will be initialized in startGame
         let currentLetterSpawnInterval = 0; // Will be initialized in startGame
         let nextSpeedIncreaseScore = 0; // Will be initialized in startGame
-        // =================================================================
+
 
         // Removed Audio elements (catchSound, missSound, wordCompleteSound, gameOverSound)
         // as per user request to not use assets.
@@ -601,9 +600,9 @@
             isPaused = false;
             pauseScreen.classList.remove('active');
             animationFrameId = requestAnimationFrame(gameLoop);
-            // FIX: Ensure currentLetterSpawnInterval is initialized before use here
-            if (currentLetterSpawnInterval === 0) { // Safety check, should be set by startGame
-                currentLetterSpawnInterval = LETTER_SPAWN_INTERVAL_INITIAL;
+            // Safety check: currentLetterSpawnInterval should be initialized by startGame()
+            if (currentLetterSpawnInterval === 0) {
+                currentLetterSpawnInterval = 1200; // Default to initial if somehow not set
             }
             letterSpawnIntervalId = setInterval(spawnLetter, currentLetterSpawnInterval);
             timerIntervalId = setInterval(updateTimer, 1000);
@@ -881,7 +880,6 @@
             isPaused = false; // Ensure game is not paused on start
 
             // Clear any existing letters
-            // FIX: Ensure fallingLetters is initialized before forEach
             if (fallingLetters && fallingLetters.length > 0) {
                 fallingLetters.forEach(letter => letter.element.remove());
             }
@@ -889,7 +887,6 @@
             letterIdCounter = 0;
 
             // Reset difficulty
-            // FIX: Use defined initial values
             currentLetterFallSpeed = 1.5; // Initialized here
             currentLetterSpawnInterval = 1200; // Initialized here
             nextSpeedIncreaseScore = SCORE_FOR_SPEED_INCREASE; // Reset speed increase threshold
@@ -986,7 +983,6 @@
             const lettersToKeep = []; 
 
             // Update falling letters
-            // FIX: Ensure fallingLetters is initialized before for loop
             for (let i = 0; i < fallingLetters.length; i++) { 
                 const letterObj = fallingLetters[i]; 
                 let shouldRemoveLetter = false; 
@@ -1005,9 +1001,10 @@
                         letterObj.element.classList.add('missed'); // Apply visual missed effect
                         // playSound(missSound); // Play miss sound - removed as no assets
                         shouldRemoveLetter = true; // Mark for removal if it falls off
-                        lives--; // Lose a life for missed letter
+                        // FIX: REMOVED LIVES DEDUCTION FOR MISSED LETTERS
+                        // lives--; // REMOVED: Lose a life for missed letter
                         updateUI();
-                        if (lives <= 0) {
+                        if (lives <= 0) { // Still check if lives are zero from incorrect catches
                             gameOver("Out of Lives!");
                             return; // Stop game loop if game over
                         }
@@ -1175,7 +1172,7 @@
                 return true; // Indicate letter should be removed
             } else {
                 // Incorrect letter caught
-                lives--; 
+                lives--; // FIX: Lives deducted only for incorrect letters caught
                 updateUI();
                 // playSound(missSound); // Play miss sound - removed as no assets
                 if (lives <= 0) {
