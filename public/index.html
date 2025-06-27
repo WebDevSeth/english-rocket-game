@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Rocket ESL Game</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        /* Ensure html and body take full height and remove default margins */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        body {
+            background-color: #000; /* Fallback for black background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px; /* Add padding around the entire game area */
+            box-sizing: border-box; /* Include padding in the element's total width and height */
+        }
+
+        /* Custom styles for game elements */
+        .game-container {
+            background: linear-gradient(180deg, #1a0033 0%, #000000 100%); /* Dark space gradient */
+            position: relative;
+            overflow: hidden;
+            border-radius: 0; /* Removed rounded corners for full screen */
+            box-shadow: none; /* Removed box shadow for full screen */
+            
+            /* Full screen adjustments, now responsive to body padding */
+            width: 100%; 
+            height: 100%;
+            margin: 0; 
+            max-width: none; 
+        }
+
+        .rocket {
+            position: absolute;
+            bottom: 20px;
+            font-size: 3rem;
+            /* Changed initial rotation to -45deg */
+            transform: translateX(-50%) rotate(-45deg); /* Initial rotation is -45deg */
+            transition: left 0.05s linear, transform 0.1s ease-out; /* Smooth movement and rotation */
+            z-index: 100;
+        }
+
+        .falling-letter {
+            position: absolute;
+            font-size: 2.5rem; /* Visual size of the letter */
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            width: 2.5rem; /* Match font-size for tight fit */
+            height: 2.5rem; /* Match font-size for tight fit */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none; /* Prevent text selection */
+            z-index: 50;
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out; /* For catch/miss effects */
+        }
+
+        /* Styles for letter effects */
+        .falling-letter.caught {
+            opacity: 0;
+            transform: scale(1.5); /* Pop out slightly */
+        }
+
+        .falling-letter.missed {
+            opacity: 0;
+            transform: translateY(20px); /* Move down slightly */
+            color: #ef4444; /* Red color for missed */
+        }
+
+        .target-word-letter {
+            display: inline-block;
+            margin: 0 0.2rem;
+            font-size: 2.5rem;
+            color: #9ca3af; /* Default grey color */
+            transition: color 0.3s ease-in-out, text-shadow 0.3s ease-in-out;
+        }
+
+        .target-word-letter.highlighted {
+            color: #34d399; /* Green for correctly spelled letters */
+            text-shadow: 0 0 15px #34d399, 0 0 25px #34d399; /* Glow effect */
+        }
+
+        .game-over-screen, .start-screen, .pause-screen, .auth-modal, .leaderboard-modal { /* Added .pause-screen, .auth-modal, .leaderboard-modal */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            text-align: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            border-radius: 0; /* Match container */
+        }
+
+        .game-over-screen.active, .start-screen.active, .pause-screen.active, .auth-modal.active, .leaderboard-modal.active { /* Added .pause-screen, .auth-modal, .leaderboard-modal */
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Button styles */
+        .game-button {
+            background: linear-gradient(145deg, #6366f1, #4f46e5); /* Purple gradient */
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 9999px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .game-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(145deg, #4f46e5, #6366f1);
+        }
+
+        .game-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Small pause button style */
+        .pause-button {
+            background: none; /* Removed background */
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0; /* Removed border-radius */
+            font-size: 1.2rem; /* Tiny size */
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: none; /* Removed box-shadow */
+            transition: all 0.2s ease;
+        }
+
+        .pause-button:hover {
+            background: rgba(255, 255, 255, 0.1); /* Slight background on hover */
+            transform: translateY(-1px);
+            box-shadow: none;
+        }
+
+        .pause-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+
+        /* Mobile touch controls */
+        .touch-controls {
+            display: none; /* Hidden by default */
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px; /* Area for touch controls */
+            z-index: 150;
+            justify-content: space-between;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .touch-controls {
+                display: flex; /* Show on small screens */
+            }
+            .desktop-controls-info {
+                display: none;
+            }
+            .rocket {
+                bottom: 120px; /* Lift rocket above touch controls */
+            }
+        }
+
+        /* Background stars animation */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            opacity: 0; /* Start hidden */
+            animation: moveStar linear infinite, twinkle 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes moveStar {
+            from { transform: translateY(0); opacity: 0.5;}
+            to { transform: translateY(calc(100vh + 20px)); opacity: 0; } /* Move off screen */
+        }
+
+        /* Animations for message box */
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-out-down {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+        .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+        .animate-fade-out-down { animation: fade-out-down 0.5s ease-in forwards; }
+    </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
+
+    <div id="gameContainer" class="game-container relative">
+
+        <!-- Game Header: Lives, Score, Timer (Top corners) -->
+        <div id="headerBar" class="absolute top-4 left-4 right-4 flex justify-between items-center text-white z-10 p-2 bg-black bg-opacity-30 rounded-lg shadow-lg">
+            <!-- Lives (Left) -->
+            <div class="flex items-center space-x-2">
+                <div id="livesEmojis" class="text-xl pt-1 pb-1"></div>
+                <span id="userIdDisplay" class="text-xs font-semibold text-gray-400 ml-4 hidden"></span> <!-- Hidden User ID -->
+            </div>
+
+            <!-- Score & Timer (Right) -->
+            <div class="flex items-center space-x-4"> <!-- Adjusted to accommodate pause button -->
+                <div class="flex flex-col items-end">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl font-bold">SCORE:</span>
+                        <span id="scoreDisplay" class="text-2xl font-bold">0</span>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <span class="text-xl font-bold">⏱️</span>
+                        <span id="timerDisplay" class="text-2xl font-bold">60</span>
+                    </div>
+                </div>
+                <!-- Pause Button -->
+                <button id="pauseButton" class="pause-button">⏸️</button>
+            </div>
+        </div>
+
+        <!-- Target Word Display (Centered independently at top) -->
+        <div class="absolute top-[35px] left-1/2 -translate-x-1/2 flex flex-col items-center text-white z-10 p-2 pb-1">
+            <div id="targetWordDisplay" class="text-4xl font-extrabold text-purple-300 tracking-wider"></div>
+        </div>
+
+        <!-- Rocket -->
+        <div id="rocket" class="rocket">🚀</div>
+
+        <!-- Start Screen (Main Menu) -->
+        <div id="startScreen" class="start-screen active">
+            <h2 class="text-5xl font-bold mb-6 drop-shadow-lg">Word Rocket 🚀</h2>
+            <p class="text-2xl mb-4">Spell words by catching falling letters!</p>
+            <p class="text-xl mb-8 desktop-controls-info">Use ⬅️ and ➡️ arrow keys or A and D to move.</p>
+
+            <div id="authDisplay" class="flex flex-col items-center gap-4">
+                <p id="welcomeMessage" class="text-3xl font-bold mb-4"></p>
+                <div id="authButtons" class="flex gap-4 mb-4">
+                    <button id="loginButton" class="game-button">Login</button>
+                    <button id="registerButton" class="game-button">Register</button>
+                </div>
+                <button id="logoutButton" class="game-button hidden mt-4 bg-red-600 hover:bg-red-700">Logout</button>
+            </div>
+
+            <button id="playButton" class="game-button mt-8 hidden">Start Game</button> <!-- Hidden by default, shown on login -->
+            <button id="leaderboardButton" class="game-button mt-4">Leaderboard</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="game-over-screen">
+            <h2 id="gameOverMessage" class="text-5xl font-bold mb-6 drop-shadow-lg">Game Over!</h2>
+            <p id="finalScore" class="text-3xl mb-8">Your Score: 0</p>
+            <p id="highScoreDisplay" class="text-2xl mb-4">Highest Score: 0</p>
+            <p id="gamesPlayedDisplay" class="text-2xl mb-8">Games Played: 0</p>
+            <button id="restartButton" class="game-button">Play Again</button>
+            <button id="viewLeaderboardButton" class="game-button mt-4">View Leaderboard</button>
+        </div>
+
+        <!-- Pause Screen -->
+        <div id="pauseScreen" class="pause-screen">
+            <h2 class="text-5xl font-bold mb-6 drop-shadow-lg">Paused</h2>
+            <button id="resumeButton" class="game-button">Resume Game</button>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="auth-modal">
+            <h2 class="text-4xl font-bold mb-6">Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email" class="p-3 mb-4 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <input type="password" id="loginPassword" placeholder="Password" class="p-3 mb-6 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <button id="loginSubmit" class="game-button mb-4">Login</button>
+            <button id="closeLoginModal" class="game-button bg-gray-500 hover:bg-gray-600">Cancel</button>
+            <p id="loginMessage" class="text-red-400 mt-4"></p>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="registerModal" class="auth-modal">
+            <h2 class="text-4xl font-bold mb-6">Register</h2>
+            <input type="email" id="registerEmail" placeholder="Email" class="p-3 mb-4 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <input type="password" id="registerPassword" placeholder="Password" class="p-3 mb-6 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <button id="registerSubmit" class="game-button mb-4">Register</button>
+            <button id="closeRegisterModal" class="game-button bg-gray-500 hover:bg-gray-600">Cancel</button>
+            <p id="registerMessage" class="text-red-400 mt-4"></p>
+        </div>
+
+        <!-- Leaderboard Modal -->
+        <div id="leaderboardModal" class="leaderboard-modal">
+            <h2 class="text-4xl font-bold mb-6">Top Scores</h2>
+            <div id="leaderboardList" class="text-xl text-left w-full max-w-md bg-black bg-opacity-40 p-4 rounded-lg">
+                <p>Loading leaderboard...</p>
+            </div>
+            <button id="closeLeaderboardModal" class="game-button mt-8 bg-gray-500 hover:bg-gray-600">Close</button>
+        </div>
+
+        <!-- Message Box for general feedback -->
+        <div id="messageBox" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-[201]">
+            <span id="messageText"></span>
+        </div>
+
+        <!-- Touch Controls for Mobile -->
+        <div class="touch-controls">
+            <button id="touchLeft" class="game-button px-8 py-4 opacity-70">⬅️</button>
+            <button id="touchRight" class="game-button px-8 py-4 opacity-70">➡️</button>
+        </div>
+
+        <!-- Removed Audio Elements as per user request (no assets) -->
+
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase configuration (now hardcoded with your specific details)
+        const appId = 'word-rocket-game'; // Your Firebase projectId
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtUGAcPzXK0eIWlvuaUpkoqRM7_Q-jbX4",
+            authDomain: "word-rocket-game.firebaseapp.com",
+            projectId: "word-rocket-game",
+            storageBucket: "word-rocket-game.firebasestorage.app",
+            messagingSenderId: "1009900144925",
+            appId: "1:1009900144925:web:8cccae317ed2224d37f9f4",
+            measurementId: "G-92RMJ5LYM4"
+        };
+        // initialAuthToken is only provided by the Canvas environment, not needed for Netlify deployment
+        const initialAuthToken = null; 
+
+        // Game configuration
+        const GAME_WORDS = [
+            "APPLE", "BANANA", "CHERRY", "GRAPE", "LEMON", "ORANGE", "PEACH", "PLUM", "STRAWBERRY", "WATERMELON",
+            "COMPUTER", "KEYBOARD", "MOUSE", "MONITOR", "PRINTER", "SCANNER", "SPEAKER", "WEBCAM", "TABLET", "LAPTOP",
+            "OCEAN", "MOUNTAIN", "RIVER", "FOREST", "DESERT", "VOLCANO", "ISLAND", "GLACIER", "CANYON", "VALLEY",
+            "SUNSHINE", "RAINBOW", "CLOUD", "THUNDER", "LIGHTNING", "SNOWFLAKE", "HAIL", "WIND", "FOG", "DEW",
+            "GUITAR", "PIANO", "DRUMS", "VIOLIN", "FLUTE", "TRUMPET", "SAXOPHONE", "CLARINET", "HARP", "CELLO",
+            "FOOTBALL", "BASKETBALL", "SOCCER", "TENNIS", "BASEBALL", "GOLF", "SWIMMING", "VOLLEYBALL", "HOCKEY", "CRICKET",
+            "CAR", "BICYCLE", "TRAIN", "AIRPLANE", "BOAT", "MOTORCYCLE", "BUS", "TRUCK", "HELICOPTER", "SUBMARINE",
+            "BOOK", "PEN", "PAPER", "NOTEBOOK", "ERASER", "PENCIL", "RULER", "SCISSORS", "GLUE", "BACKPACK",
+            "TABLE", "CHAIR", "SOFA", "BED", "WARDROBE", "LAMP", "CARPET", "CURTAIN", "MIRROR", "CLOCK",
+            "COFFEE", "TEA", "MILK", "JUICE", "WATER", "SODA", "SMOOTHIE", "LEMONADE", "CHOCOLATE", "COOKIE",
+            "PYTHON", "JAVASCRIPT", "HTML", "CSS", "REACT", "ANGULAR", "VUEJS", "FIREBASE", "NETLIFY", "GITHUB",
+            "PLANET", "STAR", "GALAXY", "NEBULA", "COMET", "ASTEROID", "ORBIT", "SPACESHIP", "ASTRONAUT", "TELESCOPE",
+            "DIAMOND", "EMERALD", "RUBY", "SAPPHIRE", "GOLD", "SILVER", "COPPER", "IRON", "PLATINUM", "BRONZE",
+            "MOUNTAIN", "VALLEY", "CAVE", "WATERFALL", "LAKE", "RIVER", "BEACH", "FOREST", "JUNGLE", "DESERT",
+            "PIZZA", "BURGER", "SUSHI", "PASTA", "SALAD", "SOUP", "SANDWICH", "TACO", "DONUT", "WAFFLE",
+            "DOG", "CAT", "BIRD", "FISH", "LION", "TIGER", "BEAR", "WOLF", "FOX", "RABBIT",
+            "DOCTOR", "TEACHER", "ENGINEER", "ARTIST", "CHEF", "PILOT", "FARMER", "WRITER", "SINGER", "DANCER",
+            "COMPUTER", "PHONE", "TABLET", "LAPTOP", "HEADPHONES", "CAMERA", "MICROPHONE", "PRINTER", "SCANNER", "SPEAKER",
+            "HAPPY", "SAD", "ANGRY", "EXCITED", "CALM", "TIRED", "BRAVE", "CONFIDENT", "CREATIVE", "CURIOUS",
+            "FLOWER", "TREE", "GRASS", "LEAF", "ROOT", "BRANCH", "BLOSSOM", "SEED", "FRUIT", "VEGETABLE"
+        ];
+        const ROCKET_SPEED = 10; // Pixels per frame
+        const LETTER_FALL_SPEED_INITIAL = 1.5; // Pixels per frame
+        const LETTER_FALL_SPEED_INCREMENT_PER_WORD = 0.05; // How much speed increases per completed word
+        const LETTER_FALL_SPEED_INCREMENT_PER_SCORE = 0.10; // How much speed increases per score milestone
+        const LETTER_FALL_SPEED_MAX = 25; // Maximum fall speed
+        const LETTER_SPAWN_INTERVAL_INITIAL = 1200; // Milliseconds
+        const LETTER_SPAWN_INTERVAL_DECREMENT = 50; // Milliseconds decrement per word
+        const GAME_DURATION_SECONDS = 60;
+        const INITIAL_LIVES = 5;
+        const SCORE_FOR_SPEED_INCREASE = 10; // Score points needed to increase speed
+
+        // Collision precision: number of pixels to inset the bounding box for collision detection
+        const COLLISION_INSET_PIXELS = 20; 
+        const GAME_PADDING = 20; // Define a global padding variable applied to the body
+
+        // Game state variables
+        let rocketElement;
+        let gameContainer;
+        let headerBar; // Reference to the header UI box
+        let targetWordDisplay;
+        let scoreDisplay;
+        let timerDisplay;
+        let livesEmojis; 
+        let gameOverScreen;
+        let gameOverMessage;
+        let finalScoreDisplay;
+        let restartButton;
+        let startScreen; // New: Start screen element
+        let playButton; // New: Play button on start screen
+        let touchLeftButton, touchRightButton;
+        let pauseButton; // New: Pause button
+        let pauseScreen; // New: Pause screen element
+        let resumeButton; // New: Resume button on pause screen
+
+        // Auth related DOM elements
+        let userIdDisplay;
+        let authDisplay;
+        let welcomeMessage;
+        let authButtons;
+        let loginButton, registerButton, logoutButton;
+        let loginModal, registerModal, leaderboardModal;
+        let loginEmail, loginPassword, loginSubmit, closeLoginModal, loginMessage;
+        let registerEmail, registerPassword, registerSubmit, closeRegisterModal, registerMessage;
+        let leaderboardButton, leaderboardList, closeLeaderboardModal;
+        let highScoreDisplay, gamesPlayedDisplay, viewLeaderboardButton;
+        let messageBox, messageText; // For custom message display instead of alert()
+
+        let rocketX = 0;
+        let rocketWidth = 0;
+        let gameContainerWidth = 0;
+        let gameContainerHeight = 0;
+
+        let currentWordIndex = 0;
+        let targetWord = '';
+        let currentSpelledLetters = []; // Stores indices of correctly caught letters for the current word
+        let score = 0;
+        let lives = INITIAL_LIVES;
+        let timer = GAME_DURATION_SECONDS;
+        let gameRunning = false;
+        let isPaused = false; // New: Game paused state
+        let animationFrameId;
+        let letterSpawnIntervalId; 
+        let timerIntervalId;
+
+        // Removed Audio elements (catchSound, missSound, wordCompleteSound, gameOverSound)
+        // as per user request to not use assets.
+        // Game sounds will not play.
+
+        // Base rotation for the rocket emoji (initial facing direction)
+        const ROCKET_BASE_ROTATION = -45; // degrees
+
+        // Firebase app, Firestore, and Auth instances
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default user ID
+        let currentUserData = { // Data stored per user
+            gamesPlayed: 0,
+            highestScore: 0,
+            lastPlayed: null,
+            userName: 'Anonymous'
+        };
+        let isAuthReady = false; // Flag to indicate Firebase auth state is ready
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a temporary message box at the bottom of the screen.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', 'info'. Defaults to 'info'.
+         */
+        function showMessageBox(message, type = 'info') {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-blue-500');
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-500');
+            } else {
+                messageBox.classList.add('bg-blue-500');
+            }
+            messageBox.classList.add('animate-fade-in-up'); // Example animation class
+            messageBox.style.display = 'block'; // Make sure it's block to show
+
+            setTimeout(() => {
+                messageBox.classList.remove('animate-fade-in-up');
+                messageBox.classList.add('animate-fade-out-down'); // Example animation class
+                setTimeout(() => {
+                    messageBox.style.display = 'none'; // Hide after animation
+                }, 500); // Match animation duration
+            }, 3000); // Message visible for 3 seconds
+        }
+
+
+        /**
+         * Plays a specified audio element if it exists and is loaded.
+         * Note: Audio elements and their playing logic have been removed as per user request (no assets).
+         * This function will no longer have any effect.
+         * @param {HTMLAudioElement} audio - The audio element to play.
+         */
+        function playSound(audio) {
+            // Function is kept as a placeholder but does nothing since audio elements are removed.
+            // console.log("Attempted to play sound, but audio elements are removed.");
+        }
+
+        /**
+         * Creates and appends a specified number of star elements to the game container.
+         * @param {number} count - The number of stars to create.
+         */
+        function createStars(count) {
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 3 + 1; // Random size between 1 and 4 px
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                // Randomize animation delay and duration for a more natural twinkle/move effect
+                star.style.animationDelay = `${Math.random() * 5}s, ${Math.random() * 5}s`;
+                star.style.animationDuration = `${Math.random() * 10 + 5}s, 3s`; // Longer duration for movement
+                gameContainer.appendChild(star);
+            }
+        }
+
+        // --- UI Visibility Management ---
+
+        function hideAllScreens() {
+            startScreen.classList.remove('active');
+            gameOverScreen.classList.remove('active');
+            pauseScreen.classList.remove('active');
+            loginModal.classList.remove('active');
+            registerModal.classList.remove('active');
+            leaderboardModal.classList.remove('active');
+        }
+
+        function showStartScreen() {
+            hideAllScreens();
+            startScreen.classList.add('active');
+            gameRunning = false;
+            isPaused = false;
+            cancelAnimationFrame(animationFrameId);
+            clearInterval(letterSpawnIntervalId); 
+            clearInterval(timerIntervalId);
+            updateAuthUI(auth.currentUser && !auth.currentUser.isAnonymous); // Update based on current auth state
+        }
+
+        function showLoginModal() {
+            hideAllScreens();
+            loginModal.classList.add('active');
+            loginEmail.value = '';
+            loginPassword.value = '';
+            loginMessage.textContent = '';
+        }
+
+        function showRegisterModal() {
+            hideAllScreens();
+            registerModal.classList.add('active');
+            registerEmail.value = '';
+            registerPassword.value = '';
+            registerMessage.textContent = '';
+        }
+
+        async function showLeaderboardModal() {
+            hideAllScreens();
+            leaderboardModal.classList.add('active');
+            await fetchLeaderboard();
+        }
+
+        /**
+         * Pauses the game.
+         */
+        function pauseGame() {
+            if (!gameRunning || isPaused) return;
+            isPaused = true;
+            cancelAnimationFrame(animationFrameId);
+            clearInterval(letterSpawnIntervalId);
+            clearInterval(timerIntervalId);
+            pauseScreen.classList.add('active');
+        }
+
+        /**
+         * Resumes the game from a paused state.
+         */
+        function resumeGame() {
+            if (!gameRunning || !isPaused) return;
+            isPaused = false;
+            pauseScreen.classList.remove('active');
+            animationFrameId = requestAnimationFrame(gameLoop);
+            letterSpawnIntervalId = setInterval(spawnLetter, currentLetterSpawnInterval);
+            timerIntervalId = setInterval(updateTimer, 1000);
+        }
+
+        // --- Firebase Authentication & Firestore Functions ---
+
+        /**
+         * Updates the UI based on user's authentication status.
+         * @param {boolean} isLoggedIn - True if a user is logged in, false otherwise.
+         */
+        function updateAuthUI(isLoggedIn) {
+            if (isLoggedIn) {
+                welcomeMessage.textContent = `Welcome, ${currentUserData.userName}!`;
+                authButtons.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+                playButton.classList.remove('hidden'); // Show play button when logged in
+                // userIdDisplay.textContent = `User ID: ${userId}`; // Removed to hide ID
+                console.log("User logged in with ID:", userId); // Log to console instead
+                showMessageBox(`Logged in as ${currentUserData.userName}`, 'success');
+            } else {
+                welcomeMessage.textContent = ``;
+                authButtons.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
+                playButton.classList.add('hidden'); // Hide play button when logged out/anonymous
+                // userIdDisplay.textContent = `User ID: ${userId}`; // Removed to hide ID
+                console.log("User logged in as Anonymous with ID:", userId); // Log to console instead
+                showMessageBox(`Logged in as Anonymous. Login or Register to save your progress!`, 'info');
+            }
+        }
+
+        /**
+         * Fetches user data from Firestore.
+         * @param {string} uid - The user's Firebase UID.
+         */
+        async function fetchUserData(uid) {
+            if (!isAuthReady || !uid || uid === 'anonymous') {
+                console.warn("Firebase not ready or anonymous user, skipping user data fetch.");
+                return;
+            }
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/gameStats`, 'data');
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    currentUserData = { ...currentUserData, ...userDocSnap.data() };
+                    console.log("User data loaded:", currentUserData);
+                } else {
+                    console.log("No existing user data for", uid, ". Initializing new data.");
+                    await setDoc(userDocRef, currentUserData, { merge: true }); // Create initial data
+                    console.log("New user data initialized:", currentUserData);
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                showMessageBox(`Error loading user data: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Saves or updates user data in Firestore.
+         * @param {string} uid - The user's Firebase UID.
+         */
+        async function saveUserData(uid) {
+            if (!isAuthReady || !uid || uid === 'anonymous') {
+                console.warn("Firebase not ready or anonymous user, skipping user data save.");
+                return;
+            }
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/gameStats`, 'data');
+                await setDoc(userDocRef, currentUserData, { merge: true }); // Use merge to only update provided fields
+                console.log("User data saved:", currentUserData);
+                showMessageBox('Game data saved!', 'success');
+            } catch (error) {
+                console.error("Error saving user data:", error);
+                showMessageBox(`Error saving game data: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Handles user registration with email and password.
+         */
+        async function handleRegister() {
+            const email = registerEmail.value;
+            const password = registerPassword.value;
+            registerMessage.textContent = ''; // Clear previous messages
+
+            if (!email || !password) {
+                registerMessage.textContent = 'Please enter both email and password.';
+                return;
+            }
+            if (password.length < 6) {
+                registerMessage.textContent = 'Password must be at least 6 characters long.';
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                userId = user.uid;
+                currentUserData.userName = email.split('@')[0]; // Use part of email as default username
+                await saveUserData(userId); // Save initial user data
+                showMessageBox('Registration successful! You are now logged in.', 'success');
+                showStartScreen(); // Go back to start screen after registration
+            } catch (error) {
+                let errorMessage = 'Registration failed.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Email already in use. Try logging in.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email address.';
+                } else {
+                    errorMessage = `Error: ${error.message}`;
+                }
+                registerMessage.textContent = errorMessage;
+                console.error("Registration error:", error);
+            }
+        }
+
+        /**
+         * Handles user login with email and password.
+         */
+        async function handleLogin() {
+            const email = loginEmail.value;
+            const password = loginPassword.value;
+            loginMessage.textContent = ''; // Clear previous messages
+
+            if (!email || !password) {
+                loginMessage.textContent = 'Please enter both email and password.';
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                userId = user.uid;
+                await fetchUserData(userId); // Fetch existing user data
+                showMessageBox('Login successful!', 'success');
+                showStartScreen(); // Go back to start screen after login
+            } catch (error) {
+                let errorMessage = 'Login failed.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email address.';
+                } else {
+                    errorMessage = `Error: ${error.message}`;
+                }
+                loginMessage.textContent = errorMessage;
+                console.error("Login error:", error);
+            }
+        }
+
+        /**
+         * Handles user logout.
+         */
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                userId = 'anonymous'; // Reset userId on logout
+                currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Anonymous' };
+                showMessageBox('Logged out successfully.', 'info');
+                showStartScreen(); // Return to start screen
+            } catch (error) {
+                console.error("Logout error:", error);
+                showMessageBox(`Logout failed: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Fetches and displays the global leaderboard.
+         */
+        async function fetchLeaderboard() {
+            leaderboardList.innerHTML = '<p>Loading leaderboard...</p>';
+            if (!isAuthReady) {
+                leaderboardList.innerHTML = '<p class="text-red-400">Firebase not initialized. Cannot load leaderboard.</p>';
+                return;
+            }
+            try {
+                // IMPORTANT: Avoid using orderBy() in Firestore queries, as it can lead to runtime errors like index missing
+                // due to the need for additional indexes. If you need to sort data, fetch all the data and sort it in memory using javascript.
+                const leaderboardQuery = query(collection(db, `artifacts/${appId}/public/data/leaderboard`));
+                const querySnapshot = await getDocs(leaderboardQuery);
+
+                let scores = [];
+                querySnapshot.forEach((doc) => {
+                    scores.push(doc.data());
+                });
+
+                // Sort scores in memory by highestScore in descending order
+                scores.sort((a, b) => b.highestScore - a.highestScore);
+
+                // Display top 10
+                if (scores.length > 0) {
+                    leaderboardList.innerHTML = `
+                        <div class="flex justify-between items-center font-bold text-purple-300 border-b border-gray-600 pb-2 mb-2">
+                            <span>Rank</span>
+                            <span>Player</span>
+                            <span>High Score</span>
+                        </div>
+                    `;
+                    scores.slice(0, 10).forEach((entry, index) => {
+                        leaderboardList.innerHTML += `
+                            <div class="flex justify-between py-1">
+                                <span>#${index + 1}</span>
+                                <span>${entry.userName || 'Unknown'}</span>
+                                <span>${entry.highestScore}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    leaderboardList.innerHTML = '<p>No scores yet. Be the first!</p>';
+                }
+
+            } catch (error) {
+                console.error("Error fetching leaderboard:", error);
+                leaderboardList.innerHTML = `<p class="text-red-400">Error loading leaderboard: ${error.message}</p>`;
+                showMessageBox(`Error loading leaderboard: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Updates the global leaderboard with the current user's highest score.
+         * Only updates if the user is not anonymous and has a new highest score.
+         */
+        async function updateLeaderboard() {
+            if (userId === 'anonymous' || currentUserData.highestScore === 0) return; // Only save if a registered user and has played
+
+            try {
+                const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboard`, userId);
+                const docSnap = await getDoc(leaderboardDocRef);
+
+                let shouldUpdate = false;
+                if (docSnap.exists()) {
+                    const existingScore = docSnap.data().highestScore || 0;
+                    if (currentUserData.highestScore > existingScore) {
+                        shouldUpdate = true;
+                    }
+                } else {
+                    shouldUpdate = true; // No entry exists, so create one
+                }
+
+                if (shouldUpdate) {
+                    await setDoc(leaderboardDocRef, {
+                        userId: userId,
+                        userName: currentUserData.userName,
+                        highestScore: currentUserData.highestScore,
+                        lastUpdated: new Date().toISOString()
+                    }, { merge: true });
+                    console.log("Leaderboard updated for", currentUserData.userName);
+                }
+            } catch (error) {
+                console.error("Error updating leaderboard:", error);
+            }
+        }
+
+        // --- Game Core Functions ---
+
+        /**
+         * Initializes and starts the game.
+         */
+        function startGame() {
+            // Only start game if a non-anonymous user is logged in
+            if (userId === 'anonymous' || !auth.currentUser || auth.currentUser.isAnonymous) {
+                showMessageBox("Please login or register to play!", 'error');
+                return;
+            }
+
+            hideAllScreens(); // Hide all modal/start screens
+
+            // Reset game state
+            currentWordIndex = 0;
+            score = 0;
+            lives = INITIAL_LIVES;
+            timer = GAME_DURATION_SECONDS; // Reset timer for new game start
+            gameRunning = true;
+            isPaused = false; // Ensure game is not paused on start
+
+            // Clear any existing letters
+            fallingLetters.forEach(letter => letter.element.remove());
+            fallingLetters = [];
+            letterIdCounter = 0;
+
+            // Reset difficulty
+            currentLetterFallSpeed = LETTER_FALL_SPEED_INITIAL; 
+            currentLetterSpawnInterval = LETTER_SPAWN_INTERVAL_INITIAL; 
+            nextSpeedIncreaseScore = SCORE_FOR_SPEED_INCREASE; // Reset speed increase threshold
+
+            // Update user's games played count
+            if (userId !== 'anonymous' && isAuthReady) {
+                currentUserData.gamesPlayed = (currentUserData.gamesPlayed || 0) + 1;
+                currentUserData.lastPlayed = new Date().toISOString();
+                saveUserData(userId); // Save updated gamesPlayed
+            }
+
+            // Start a new word
+            loadNextWord();
+
+            // Update UI
+            updateUI();
+
+            // Start game loop and timer
+            cancelAnimationFrame(animationFrameId); // Stop any existing loop
+            animationFrameId = requestAnimationFrame(gameLoop);
+
+            clearInterval(timerIntervalId); // Clear existing timer
+            timerIntervalId = setInterval(updateTimer, 1000);
+
+            clearInterval(letterSpawnIntervalId); 
+            letterSpawnIntervalId = setInterval(spawnLetter, currentLetterSpawnInterval); 
+        }
+
+        /**
+         * Ends the game and displays the game over screen.
+         * @param {string} message - The message to display (e.g., "Time's Up!", "Out of Lives!").
+         */
+        function gameOver(message) {
+            gameRunning = false;
+            isPaused = false; // Ensure not paused when game is over
+            cancelAnimationFrame(animationFrameId);
+            clearInterval(letterSpawnIntervalId); 
+            clearInterval(timerIntervalId);
+            playSound(gameOverSound); // Play game over sound
+
+            // Update user's highest score if current score is better
+            if (userId !== 'anonymous' && isAuthReady && score > (currentUserData.highestScore || 0)) {
+                currentUserData.highestScore = score;
+                saveUserData(userId); // Save new highest score
+                updateLeaderboard(); // Update global leaderboard
+            } else if (userId !== 'anonymous' && isAuthReady) {
+                saveUserData(userId); // Save last played and games played if no new high score
+            }
+
+            // Display game over screen
+            gameOverMessage.textContent = message;
+            finalScoreDisplay.textContent = `Your Score: ${score}`;
+            highScoreDisplay.textContent = `Highest Score: ${currentUserData.highestScore}`;
+            gamesPlayedDisplay.textContent = `Games Played: ${currentUserData.gamesPlayed}`;
+            gameOverScreen.classList.add('active');
+            pauseScreen.classList.remove('active'); // Ensure pause screen is hidden
+        }
+
+        /**
+         * Loads the next word from the GAME_WORDS array.
+         */
+        function loadNextWord() {
+            if (currentWordIndex >= GAME_WORDS.length) {
+                // All words completed, loop back to start for continuous play
+                currentWordIndex = 0; 
+            }
+            targetWord = GAME_WORDS[currentWordIndex];
+            currentSpelledLetters = Array(targetWord.length).fill(false); // Reset spelling progress
+            updateTargetWordDisplay();
+
+            // Reset timer when a new word is loaded
+            timer = GAME_DURATION_SECONDS;
+            updateUI(); // Update UI immediately to show new timer value
+
+            // Increase difficulty for the next word (this is separate from score-based speed increase)
+            currentLetterFallSpeed = Math.min(currentLetterFallSpeed + LETTER_FALL_SPEED_INCREMENT_PER_WORD, LETTER_FALL_SPEED_MAX); 
+            currentLetterSpawnInterval = Math.max(currentLetterSpawnInterval - LETTER_SPAWN_INTERVAL_DECREMENT, 300); // Min interval
+            clearInterval(letterSpawnIntervalId); 
+            letterSpawnIntervalId = setInterval(spawnLetter, currentLetterSpawnInterval); 
+            
+            currentWordIndex++; // Move to the next word for the next round
+        }
+
+        /**
+         * Main game loop, runs continuously via requestAnimationFrame.
+         */
+        function gameLoop() {
+            if (!gameRunning || isPaused) return; // Added check for isPaused
+
+            // Update rocket position based on input
+            updateRocketMove();
+
+            // Create a new array to hold objects that should remain for the next frame
+            const lettersToKeep = []; 
+
+            // Update falling letters
+            for (let i = 0; i < fallingLetters.length; i++) { 
+                const letterObj = fallingLetters[i]; 
+                let shouldRemoveLetter = false; 
+
+                // Check for collision with rocket
+                if (checkCollision(letterObj)) { 
+                    shouldRemoveLetter = handleLetterCatch(letterObj); 
+                }
+
+                // If not removed by collision, update position and check if it fell off screen
+                if (!shouldRemoveLetter) { 
+                    letterObj.y += currentLetterFallSpeed; 
+                    letterObj.element.style.top = `${letterObj.y}px`;
+
+                    if (letterObj.y > gameContainerHeight) {
+                        letterObj.element.classList.add('missed'); // Apply visual missed effect
+                        playSound(missSound); // Play miss sound (no effect as removed)
+                        shouldRemoveLetter = true; // Mark for removal if it falls off
+                        lives--; // Lose a life for missed letter
+                        updateUI();
+                        if (lives <= 0) {
+                            gameOver("Out of Lives!");
+                            return; // Stop game loop if game over
+                        }
+                    }
+                }
+                
+                // If the letter should be removed, handle its DOM removal with animation delay
+                if (shouldRemoveLetter) { 
+                    // Use a small delay for CSS transition effect before actual DOM removal
+                    setTimeout(() => { 
+                        if (letterObj.element.parentNode) { // Check if element still exists in DOM before removing
+                            letterObj.element.remove();
+                        }
+                    }, 200); // Allow time for CSS transition
+                } else {
+                    // If not removed, add to the list of letters to keep
+                    lettersToKeep.push(letterObj);
+                }
+            }
+
+            // Replace the old fallingLetters array with the new one containing only letters to keep
+            fallingLetters = lettersToKeep; 
+
+            // Request next frame
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        /**
+         * Updates the rocket's visual position.
+         */
+        function updateRocketPosition() {
+            // rocketX is already the center, so apply it directly.
+            rocketElement.style.left = `${rocketX}px`;
+        }
+
+        /**
+         * Spawns a new letter at a random top-left position.
+         * It can be a correct letter or a random incorrect letter.
+         */
+        function spawnLetter() { 
+            if (!gameRunning || isPaused) return; // Added check for isPaused
+
+            const nextCorrectLetterIndex = currentSpelledLetters.findIndex(s => s === false);
+            let letterChar;
+            let isCorrectLetter = false;
+
+            if (nextCorrectLetterIndex !== -1 && Math.random() < 0.6) { // 60% chance to spawn a needed letter
+                letterChar = targetWord[nextCorrectLetterIndex];
+                isCorrectLetter = true;
+            } else {
+                // Spawn a random letter (can be correct or incorrect)
+                const allPossibleLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                letterChar = allPossibleLetters[Math.floor(Math.random() * allPossibleLetters.length)];
+            }
+
+            const letterElement = document.createElement('div');
+            letterElement.classList.add('falling-letter');
+            letterElement.textContent = letterChar;
+
+            // Append temporarily to get offsetWidth
+            gameContainer.appendChild(letterElement);
+
+            // Ensure letters spawn within the padded game area. Adjust for letter's own width.
+            const spawnableWidth = gameContainerWidth - letterElement.offsetWidth;
+            const startX = Math.random() * spawnableWidth; 
+            // Calculate startY to be just below the header bar, adjusted for its height so it spawns fully visible.
+            const startY = headerBar.offsetHeight + headerBar.offsetTop; 
+
+            // Set initial position immediately (already appended)
+            letterElement.style.left = `${startX}px`;
+            letterElement.style.top = `${startY}px`;
+
+            fallingLetters.push({ 
+                id: letterIdCounter++, 
+                element: letterElement,
+                char: letterChar,
+                isCorrect: isCorrectLetter, 
+                x: startX,
+                y: startY,
+                // Get actual rendered width/height (which should reflect the CSS)
+                width: letterElement.offsetWidth,
+                height: letterElement.offsetHeight
+            });
+        }
+
+        /**
+         * Checks for collision between the rocket and a falling letter.
+         * @param {object} letterObj - The falling letter object.
+         * @returns {boolean} True if collision detected, false otherwise.
+         */
+        function checkCollision(letterObj) { 
+            const rocketRect = rocketElement.getBoundingClientRect();
+            const letterRect = letterObj.element.getBoundingClientRect(); 
+
+            // Adjust coordinates relative to the game container's internal coordinate system
+            // The gameContainer's top/left will be offset by body padding.
+            const containerOffsetLeft = gameContainer.getBoundingClientRect().left;
+            const containerOffsetTop = gameContainer.getBoundingClientRect().top;
+
+            // Apply collision inset to the rocket's bounding box
+            // Since rocketX is the center due to transform: translateX(-50%), adjust its actual left/right for collision.
+            const rocketCollisionLeft = (rocketRect.left - containerOffsetLeft) + COLLISION_INSET_PIXELS;
+            const rocketCollisionRight = (rocketRect.right - containerOffsetLeft) - COLLISION_INSET_PIXELS;
+            const rocketCollisionTop = (rocketRect.top - containerOffsetTop) + COLLISION_INSET_PIXELS;
+            const rocketCollisionBottom = (rocketRect.bottom - containerOffsetTop) - COLLISION_INSET_PIXELS;
+
+            // Apply collision inset to the falling letter's bounding box
+            const letterCollisionLeft = (letterRect.left - containerOffsetLeft) + COLLISION_INSET_PIXELS; 
+            const letterCollisionRight = (letterRect.right - containerOffsetLeft) - COLLISION_INSET_PIXELS; 
+            const letterCollisionTop = (letterRect.top - containerOffsetTop) + COLLISION_INSET_PIXELS; 
+            const letterCollisionBottom = (letterRect.bottom - containerOffsetTop) - COLLISION_INSET_PIXELS; 
+
+            // Basic AABB collision detection
+            return rocketCollisionLeft < letterCollisionRight && 
+                   rocketCollisionRight > letterCollisionLeft && 
+                   rocketCollisionTop < letterCollisionBottom && 
+                   rocketCollisionBottom > letterCollisionTop; 
+        }
+
+        /**
+         * Handles a letter being caught by the rocket.
+         * Returns true if the letter should be removed from the game.
+         * @param {object} letterObj - The caught letter object.
+         * @returns {boolean} True if the letter should be removed, false otherwise.
+         */
+        function handleLetterCatch(letterObj) { 
+            letterObj.element.classList.add('caught'); // Apply visual 'caught' effect
+            
+            const caughtChar = letterObj.char;
+            const nextCorrectLetterIndex = currentSpelledLetters.findIndex(s => s === false);
+            
+            if (nextCorrectLetterIndex !== -1 && caughtChar === targetWord[nextCorrectLetterIndex]) {
+                // Correct letter caught
+                currentSpelledLetters[nextCorrectLetterIndex] = true;
+                score += 10; // Award points
+                playSound(catchSound); // Play catch sound (no effect as removed)
+
+                // Check for score-based speed increase
+                if (score >= nextSpeedIncreaseScore) {
+                    currentLetterFallSpeed = Math.min(currentLetterFallSpeed + LETTER_FALL_SPEED_INCREMENT_PER_SCORE, LETTER_FALL_SPEED_MAX); 
+                    nextSpeedIncreaseScore += SCORE_FOR_SPEED_INCREASE; // Set next milestone
+                    console.log(`Speed increased! New speed: ${currentLetterFallSpeed.toFixed(2)}, Next milestone: ${nextSpeedIncreaseScore}`);
+                }
+
+                updateTargetWordDisplay();
+                updateUI();
+
+                // Check if the word is fully spelled
+                if (currentSpelledLetters.every(s => s === true)) {
+                    score += 50; // Bonus for completing word
+                    updateUI();
+                    playSound(wordCompleteSound); // Play word complete sound (no effect as removed)
+                    
+                    // Remove all existing falling letters visually to clear the screen for the next word
+                    fallingLetters.forEach(obj => {
+                        if (obj.element.parentNode) {
+                            obj.element.remove();
+                        }
+                    });
+                    fallingLetters = []; // Explicitly clear the array for the next word
+                    setTimeout(loadNextWord, 1000); // Load next word after a short delay
+                }
+                return true; // Indicate letter should be removed
+            } else {
+                // Incorrect letter caught
+                lives--; 
+                updateUI();
+                playSound(missSound); // Play miss sound (no effect as removed)
+                if (lives <= 0) {
+                    gameOver("Out of Lives!");
+                }
+                return true; // Indicate letter should be removed
+            }
+        }
+
+        /**
+         * Updates the countdown timer.
+         */
+        function updateTimer() {
+            if (!gameRunning || isPaused) return; // Added check for isPaused
+            timer--;
+            updateUI();
+            if (timer <= 0) {
+                gameOver("Time's Up!");
+            }
+        }
+
+        /**
+         * Updates the score, timer, and lives displays.
+         */
+        function updateUI() {
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timer;
+
+            // Update lives display with heart emojis
+            let heartsHtml = '';
+            if (lives <= 0) {
+                heartsHtml = '💔'; // Broken heart when no lives left
+            } else {
+                for (let i = 0; i < lives; i++) {
+                    heartsHtml += '❤️';
+                }
+            }
+            livesEmojis.innerHTML = heartsHtml;
+        }
+
+        /**
+         * Updates the display of the target word, highlighting correctly spelled letters.
+         */
+        function updateTargetWordDisplay() {
+            targetWordDisplay.innerHTML = ''; // Clear previous display
+            targetWord.split('').forEach((char, index) => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.classList.add('target-word-letter');
+                if (currentSpelledLetters[index]) {
+                    span.classList.add('highlighted');
+                }
+                targetWordDisplay.appendChild(span);
+            });
+        }
+
+        // --- Input Handling ---
+        let keysPressed = {}; // Keep track of currently pressed keys
+        let touchMoveDirection = 0; // -1 for left, 1 for right, 0 for none
+
+        function handleKeyDown(event) {
+            // Allow 'Escape' key to toggle pause even if game is not running, but only if gameRunning is true
+            if (event.key === 'Escape' && gameRunning) { 
+                if (isPaused) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            }
+            
+            // Only process movement keys if game is running and not paused
+            if (!gameRunning || isPaused) return;
+
+            keysPressed[event.key.toLowerCase()] = true; // Convert to lowercase for 'a'/'d'
+        }
+
+        function handleKeyUp(event) {
+            keysPressed[event.key.toLowerCase()] = false; // Convert to lowercase
+            // Reset rocket rotation to base rotation when keys are released
+            if (!isPaused && !keysPressed['arrowleft'] && !keysPressed['a'] && !keysPressed['arrowright'] && !keysPressed['d']) {
+                rocketElement.style.transform = `translateX(-50%) rotate(${ROCKET_BASE_ROTATION}deg)`;
+            }
+        }
+
+        /**
+         * Updates rocket position based on currently pressed arrow keys, A/D keys, or touch input.
+         * Also updates rocket rotation based on movement direction.
+         * Called once per frame in gameLoop.
+         */
+        function updateRocketMove() {
+            if (isPaused) return; // Added check for isPaused
+
+            let moveAmount = 0;
+            let rotationOffset = 0; // Offset from base rotation
+
+            if (keysPressed['arrowleft'] || keysPressed['a']) {
+                moveAmount -= ROCKET_SPEED;
+                rotationOffset = -15; // Tilt left relative to base
+            }
+            if (keysPressed['arrowright'] || keysPressed['d']) {
+                moveAmount += ROCKET_SPEED;
+                rotationOffset = 15; // Tilt right relative to base
+            }
+            // Add touch input to movement
+            if (touchMoveDirection !== 0) {
+                moveAmount += touchMoveDirection * ROCKET_SPEED;
+                rotationOffset = touchMoveDirection * 15; // Tilt based on touch direction
+            }
+
+            rocketX += moveAmount;
+
+            // Clamp rocketX. The rocket's 'left' CSS property (rocketX) represents its center due to transform: translateX(-50%).
+            const minRocketX = rocketWidth / 2;
+            const maxRocketX = gameContainerWidth - (rocketWidth / 2);
+            rocketX = Math.max(minRocketX, Math.min(rocketX, maxRocketX));
+
+            // Calculate total rotation
+            const totalRotation = ROCKET_BASE_ROTATION + rotationOffset;
+
+            // Update visual position and rotation
+            rocketElement.style.left = `${rocketX}px`;
+            rocketElement.style.transform = `translateX(-50%) rotate(${totalRotation}deg)`;
+        }
+
+        // --- Game Initialization ---
+        window.onload = function () {
+            // Get DOM elements
+            rocketElement = document.getElementById('rocket');
+            gameContainer = document.getElementById('gameContainer');
+            headerBar = document.getElementById('headerBar'); // Get reference to the header bar
+            targetWordDisplay = document.getElementById('targetWordDisplay');
+            scoreDisplay = document.getElementById('scoreDisplay');
+            timerDisplay = document.getElementById('timerDisplay');
+            livesEmojis = document.getElementById('livesEmojis'); 
+            gameOverScreen = document.getElementById('gameOverScreen');
+            gameOverMessage = document.getElementById('gameOverMessage');
+            finalScoreDisplay = document.getElementById('finalScore');
+            restartButton = document.getElementById('restartButton');
+            startScreen = document.getElementById('startScreen'); // Get start screen
+            playButton = document.getElementById('playButton'); // Get play button
+            touchLeftButton = document.getElementById('touchLeft');
+            touchRightButton = document.getElementById('touchRight');
+            pauseButton = document.getElementById('pauseButton'); // Get pause button
+            pauseScreen = document.getElementById('pauseScreen'); // Get pause screen
+            resumeButton = document.getElementById('resumeButton'); // Get resume button
+
+            // Get new Auth related DOM elements
+            userIdDisplay = document.getElementById('userIdDisplay');
+            authDisplay = document.getElementById('authDisplay');
+            welcomeMessage = document.getElementById('welcomeMessage');
+            authButtons = document.getElementById('authButtons');
+            loginButton = document.getElementById('loginButton');
+            registerButton = document.getElementById('registerButton');
+            logoutButton = document.getElementById('logoutButton');
+            loginModal = document.getElementById('loginModal');
+            registerModal = document.getElementById('registerModal');
+            leaderboardModal = document.getElementById('leaderboardModal');
+            loginEmail = document.getElementById('loginEmail');
+            loginPassword = document.getElementById('loginPassword');
+            loginSubmit = document.getElementById('loginSubmit');
+            closeLoginModal = document.getElementById('closeLoginModal');
+            loginMessage = document.getElementById('loginMessage');
+            registerEmail = document.getElementById('registerEmail');
+            registerPassword = document.getElementById('registerPassword');
+            closeRegisterModal = document.getElementById('closeRegisterModal');
+            registerSubmit = document.getElementById('registerSubmit');
+            registerMessage = document.getElementById('registerMessage');
+            leaderboardButton = document.getElementById('leaderboardButton');
+            leaderboardList = document.getElementById('leaderboardList');
+            closeLeaderboardModal = document.getElementById('closeLeaderboardModal');
+            highScoreDisplay = document.getElementById('highScoreDisplay');
+            gamesPlayedDisplay = document.getElementById('gamesPlayedDisplay');
+            viewLeaderboardButton = document.getElementById('viewLeaderboardButton');
+            messageBox = document.getElementById('messageBox');
+            messageText = document.getElementById('messageText');
+
+
+            // Removed audio element references (catchSound, missSound, wordCompleteSound, gameOverSound)
+            // as per user request (no assets).
+
+            // Set initial rocket position
+            // Calculate usable game area based on window dimensions and body padding
+            gameContainerWidth = window.innerWidth - (2 * GAME_PADDING);
+            gameContainerHeight = window.innerHeight - (2 * GAME_PADDING);
+
+            rocketWidth = rocketElement.offsetWidth;
+            rocketX = (gameContainerWidth / 2); // Initialize rocketX as the center of the container
+            updateRocketPosition();
+
+            // Event Listeners
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            restartButton.addEventListener('click', startGame);
+            pauseButton.addEventListener('click', pauseGame); // Event listener for pause button
+            resumeButton.addEventListener('click', resumeGame); // Event listener for resume button
+
+            // Auth button listeners
+            loginButton.addEventListener('click', showLoginModal);
+            registerButton.addEventListener('click', showRegisterModal);
+            logoutButton.addEventListener('click', handleLogout);
+            loginSubmit.addEventListener('click', handleLogin);
+            registerSubmit.addEventListener('click', handleRegister);
+            closeLoginModal.addEventListener('click', showStartScreen);
+            closeRegisterModal.addEventListener('click', showStartScreen);
+            leaderboardButton.addEventListener('click', showLeaderboardModal);
+            closeLeaderboardModal.addEventListener('click', showStartScreen);
+            viewLeaderboardButton.addEventListener('click', showLeaderboardModal);
+            playButton.addEventListener('click', startGame); // Added explicit listener here for the hidden button
+
+            // Touch controls: Changed to only set direction, main loop handles movement
+            let touchMoveDirection = 0; // -1 for left, 1 for right, 0 for none
+
+            touchLeftButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent scrolling
+                if (!isPaused) touchMoveDirection = -1;
+            });
+            touchRightButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent scrolling
+                if (!isPaused) touchMoveDirection = 1;
+            });
+
+            // Stop moving on touch end or touch cancel
+            const stopTouchMove = () => {
+                touchMoveDirection = 0;
+                // Reset rocket rotation to base rotation when touch ends
+                if (!isPaused) {
+                    rocketElement.style.transform = `translateX(-50%) rotate(${ROCKET_BASE_ROTATION}deg)`;
+                }
+            };
+            touchLeftButton.addEventListener('touchend', stopTouchMove);
+            touchLeftButton.addEventListener('touchcancel', stopTouchMove);
+            touchRightButton.addEventListener('touchend', stopTouchMove);
+            touchRightButton.addEventListener('touchcancel', stopTouchMove);
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                gameContainerWidth = window.innerWidth - (2 * GAME_PADDING);
+                gameContainerHeight = window.innerHeight - (2 * GAME_PADDING);
+                rocketWidth = rocketElement.offsetWidth;
+                // Readjust rocket position on resize if it's out of bounds
+                const minRocketX = rocketWidth / 2;
+                const maxRocketX = gameContainerWidth - (rocketWidth / 2);
+                rocketX = Math.max(minRocketX, Math.min(rocketX, maxRocketX));
+                updateRocketPosition();
+            });
+
+            // Create background stars
+            createStars(50); // Create 50 stars
+
+            // Initialize Firebase
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Sign in with custom token or anonymously
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    isAuthReady = true; // Firebase is ready
+                    console.log("Firebase Auth state changed. User ID:", userId);
+                    if (!user.isAnonymous) { // If it's a real user, try to get user data
+                        await fetchUserData(userId);
+                    } else {
+                        currentUserData.userName = 'Anonymous'; // Default for anonymous users
+                    }
+                    updateAuthUI(true); // Update UI for logged-in state
+                } else {
+                    // User is signed out or not yet signed in.
+                    // If initialAuthToken is present, attempt custom token sign-in first.
+                    // Otherwise, sign in anonymously.
+                    if (initialAuthToken) {
+                        try {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                            console.log("Signed in with custom token.");
+                        } catch (error) {
+                            console.error("Error signing in with custom token:", error);
+                            await signInAnonymously(auth); // Fallback to anonymous
+                            console.log("Signed in anonymously due to custom token error.");
+                        }
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                    userId = auth.currentUser?.uid || 'anonymous'; // Fallback
+                    currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Anonymous' };
+                    isAuthReady = true; // Firebase is ready even for anonymous
+                    updateAuthUI(false); // Update UI for logged-out/anonymous state
+                }
+                showStartScreen(); // Show the start screen after auth state is determined
+            });
+        };
+    </script>
+</body>
+</html>
