@@ -1,10 +1,22 @@
 [build]
   publish = "public"
-  command = "npm install && npm run build" # A dummy command, as static sites don't always need one
+  # This command runs before deployment to generate the env-config.js file
+  # It dynamically creates the window.FIREBASE_CONFIG object using your Netlify environment variables.
+  command = """
+    echo "window.FIREBASE_CONFIG = {" > ./public/env-config.js
+    echo "  apiKey: '${FIREBASE_API_KEY}'," >> ./public/env-config.js
+    echo "  authDomain: '${FIREBASE_AUTH_DOMAIN}'," >> ./public/env-config.js
+    echo "  projectId: '${FIREBASE_PROJECT_ID}'," >> ./public/env-config.js
+    echo "  storageBucket: '${FIREBASE_STORAGE_BUCKET}'," >> ./public/env-config.js
+    echo "  messagingSenderId: '${FIREBASE_MESSAGING_SENDER_ID}'," >> ./public/env-config.js
+    echo "  appId: '${FIREBASE_APP_ID}'," >> ./public/env-config.js
+    echo "  measurementId: '${FIREBASE_MEASUREMENT_ID}'" >> ./public/env-config.js
+    echo "};" >> ./public/env-config.js
+  """
 
 [context.production.environment]
-  # These variables will be injected into window.FIREBASE_VARS object during build
-  # The values here are placeholders. You will set the actual values in Netlify UI.
+  # These variables will be provided by Netlify to the build command above.
+  # You MUST set their actual values in the Netlify UI (next step).
   FIREBASE_API_KEY = ""
   FIREBASE_AUTH_DOMAIN = ""
   FIREBASE_PROJECT_ID = ""
@@ -12,20 +24,3 @@
   FIREBASE_MESSAGING_SENDER_ID = ""
   FIREBASE_APP_ID = ""
   FIREBASE_MEASUREMENT_ID = ""
-
-[build.environment]
-  # This tells Netlify to inject the environment variables into the HTML before serving.
-  # Netlify will automatically create a script tag like:
-  # <script>window.FIREBASE_VARS = { apiKey: '...', projectId: '...' };</script>
-  # and place it inside your index.html.
-  # You need to ensure a <script id="firebase-env-vars"></script> exists in your HTML.
-  # Netlify will then replace this tag with the injected variables.
-  # NOTE: This method is specific to Netlify and how it handles environment variables for static sites.
-  # The "build" section above is a placeholder; for pure HTML, it won't actually run anything.
-  # However, Netlify needs a 'build' context to apply [context.production.environment]
-  # and this ensures the injection magic happens.
-
-[functions]
-  # You don't need functions for this app, but this section can be here for completeness
-  # or if you plan to add serverless functions later.
-  directory = "netlify/functions"
