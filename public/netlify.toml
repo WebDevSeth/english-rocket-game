@@ -1,15 +1,10 @@
 [build]
   publish = "public"
-  # No explicit command needed here for env var injection with this HTML setup.
-  # Netlify will automatically perform string replacement on %VITE_VAR% placeholders.
+  # For static HTML with %VITE_VAR% placeholders, Netlify automatically
+  # injects environment variables defined in the Netlify UI if they are prefixed
+  # correctly (e.g., VITE_). No explicit [build.environment] block is needed here
+  # as it can sometimes prevent the injection.
 
-[context.production.environment]
-  # These variables will be made available during the build process
-  # and automatically injected into your HTML if referenced correctly.
-  VITE_FIREBASE_API_KEY = ""
-  VITE_FIREBASE_AUTH_DOMAIN = ""
-  VITE_FIREBASE_PROJECT_ID = ""
-  VITE_FIREBASE_STORAGE_BUCKET = ""
-  VITE_FIREBASE_MESSAGING_SENDER_ID = ""
-  VITE_FIREBASE_APP_ID = ""
-  VITE_FIREBASE_MEASUREMENT_ID = ""
+# If you were using Netlify Functions and needed environment variables for them,
+# you would define them under a [functions] or [context.production.environment]
+# section, but for simple HTML/JS, this is sufficient.
