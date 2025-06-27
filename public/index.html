@@ -362,7 +362,6 @@
         const firebaseConfig = window.firebaseConfig; // Access the globally defined object
 
         // The appId can be derived from projectId or hardcoded if it's constant.
-        // We now safely assume firebaseConfig will be loaded.
         const appId = (firebaseConfig && firebaseConfig.projectId) ? firebaseConfig.projectId : 'word-rocket-game'; 
 
         // initialAuthToken is only provided by the Canvas environment, not needed for Netlify deployment
@@ -1276,7 +1275,10 @@
         }
 
         function handleKeyUp(event) {
-            // No need to check keysPressed type here, as it's a global let variable
+            // Defensive check for keysPressed in case handleKeyUp is called very early
+            if (typeof keysPressed === 'undefined' || keysPressed === null) {
+                keysPressed = {}; // Re-initialize if it's not an object
+            }
             keysPressed[event.key.toLowerCase()] = false; // Convert to lowercase
             // Reset rocket rotation to base rotation when keys are released
             if (!isPaused && !keysPressed['arrowleft'] && !keysPressed['a'] && !keysPressed['arrowright'] && !keysPressed['d']) {

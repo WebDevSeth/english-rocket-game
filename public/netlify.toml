@@ -13,5 +13,3 @@
     echo "  measurementId: \"$FIREBASE_MEASUREMENT_ID\"" >> ./public/_netlify_firebase_config.js
     echo "};" >> ./public/_netlify_firebase_config.js
   """
-
-# Environment variables set in Netlify UI will be available to the build command.
