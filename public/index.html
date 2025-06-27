@@ -346,29 +346,22 @@
 
     </div>
 
+    <!-- Import the dynamically generated Firebase config file -->
+    <!-- Netlify's build command will create public/firebase-config.js and put your secrets in it. -->
+    <script type="module" src="/firebase-config.js"></script>
+
     <script type="module">
         // Firebase imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase configuration will be injected by Netlify at build time.
-        // The '%VITE_...' syntax ensures Netlify replaces these placeholders.
-        const firebaseConfig = {
-            apiKey: '%VITE_FIREBASE_API_KEY%',
-            authDomain: '%VITE_FIREBASE_AUTH_DOMAIN%',
-            projectId: '%VITE_FIREBASE_PROJECT_ID%',
-            storageBucket: '%VITE_FIREBASE_STORAGE_BUCKET%',
-            messagingSenderId: '%VITE_FIREBASE_MESSAGING_SENDER_ID%',
-            appId: '%VITE_FIREBASE_APP_ID%',
-            measurementId: '%VITE_FIREBASE_MEASUREMENT_ID%'
-        };
         
+        // Import firebaseConfig from the dynamically generated file
+        // This import will only work if Netlify successfully creates firebase-config.js
+        import { firebaseConfig } from '/firebase-config.js';
+
         // The appId can be derived from projectId or hardcoded if it's constant.
-        // It's safe to use a fallback here for local development if not using a build tool.
-        const appId = firebaseConfig.projectId && firebaseConfig.projectId.includes('VITE_') === false
-                      ? firebaseConfig.projectId
-                      : 'word-rocket-game'; // Default projectId if env var not injected
+        const appId = firebaseConfig.projectId || 'word-rocket-game'; 
 
         // initialAuthToken is only provided by the Canvas environment, not needed for Netlify deployment
         const initialAuthToken = null; 
@@ -1261,7 +1254,7 @@
         }
 
         // --- Input Handling ---
-        let keysPressed = {}; // Keep track of currently pressed keys
+        let keysPressed = {}; // Keep track of currently pressed keys. Initialize here.
         let touchMoveDirection = 0; // -1 for left, 1 for right, 0 for none
 
         function handleKeyDown(event) {
@@ -1281,6 +1274,10 @@
         }
 
         function handleKeyUp(event) {
+            // Ensure keysPressed is initialized to prevent error
+            if (typeof keysPressed === 'undefined' || keysPressed === null) {
+                keysPressed = {}; // Re-initialize if for some reason it's not an object
+            }
             keysPressed[event.key.toLowerCase()] = false; // Convert to lowercase
             // Reset rocket rotation to base rotation when keys are released
             if (!isPaused && !keysPressed['arrowleft'] && !keysPressed['a'] && !keysPressed['arrowright'] && !keysPressed['d']) {
@@ -1454,11 +1451,14 @@
             createStars(50); // Create 50 stars
 
             // Initialize Firebase
-            // Check if firebaseConfig has actual values (not placeholders from local dev)
-            // The includes('VITE_') === false check ensures placeholders have been replaced by Netlify
-            const isFirebaseConfigProvided = firebaseConfig.apiKey && firebaseConfig.apiKey.includes('VITE_') === false;
+            // Using a try-catch block for robust initialization
+            try {
+                // firebaseConfig is imported from firebase-config.js.
+                // Check if it's properly defined. If not, this is a build issue.
+                if (!firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+                    throw new Error("Firebase configuration object is missing or incomplete. This usually means Netlify failed to inject environment variables into 'firebase-config.js'.");
+                }
 
-            if (isFirebaseConfigProvided) {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -1482,9 +1482,9 @@
                     }
                     showStartScreen(); // Show the start screen after auth state is determined
                 });
-            } else {
-                console.error("Firebase initialization skipped: Configuration is missing or incomplete (placeholders found). Ensure environment variables are set correctly on Netlify (VITE_ prefix) and that your netlify.toml is correctly configured or absent to allow Netlify's automatic injection.");
-                showMessageBox("Error: Game could not load Firebase configuration. Please check Netlify deployment.", 'error');
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showMessageBox(`Error: Game could not initialize Firebase. ${error.message}`, 'error');
                 isAuthReady = false; // Ensure auth is marked as not ready
                 updateAuthUI(null); 
                 showStartScreen(); // Always show start screen even if Firebase fails
