@@ -84,7 +84,7 @@
             display: inline-block;
             margin: 0 0.2rem;
             /* Adjusted for mobile responsiveness */
-            font-size: 2rem; /* Default for mobile */
+            font-size: 1.5rem; /* Smaller default for mobile */
             color: #9ca3af; /* Default grey color */
             transition: color 0.3s ease-in-out, text-shadow 0.3s ease-in-out;
         }
@@ -250,25 +250,23 @@
             </div>
 
             <!-- Score & Timer (Right) -->
-            <div class="flex items-center space-x-4"> <!-- Adjusted to accommodate pause button -->
-                <div class="flex flex-col items-end">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xl font-bold">SCORE:</span>
-                        <span id="scoreDisplay" class="text-2xl font-bold">0</span>
-                    </div>
-                    <div class="flex items-center space-x-2 mt-1">
-                        <span class="text-xl font-bold">⏱️</span>
-                        <span id="timerDisplay" class="text-2xl font-bold">60</span>
-                    </div>
+            <div class="flex flex-col items-end">
+                <div class="flex items-center space-x-2">
+                    <span class="text-base sm:text-xl font-bold">SCORE:</span> <!-- Adjusted score text size -->
+                    <span id="scoreDisplay" class="text-xl sm:text-2xl font-bold">0</span> <!-- Adjusted score display size -->
                 </div>
-                <!-- Pause Button -->
-                <button id="pauseButton" class="pause-button">⏸️</button>
+                <div class="flex items-center space-x-2 mt-1">
+                    <span class="text-base sm:text-xl font-bold">⏱️</span> <!-- Adjusted timer icon size -->
+                    <span id="timerDisplay" class="text-xl sm:text-2xl font-bold">60</span> <!-- Adjusted timer display size -->
+                </div>
             </div>
+            <!-- Pause Button -->
+            <button id="pauseButton" class="pause-button">⏸️</button>
         </div>
 
         <!-- Target Word Display (Centered independently at top) -->
         <div class="absolute top-[35px] left-1/2 -translate-x-1/2 flex flex-col items-center text-white z-10 p-2 pb-1">
-            <div id="targetWordDisplay" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-purple-300 tracking-wider"></div> <!-- Adjusted text size for mobile -->
+            <div id="targetWordDisplay" class="text-xl sm:text-2xl md:text-4xl font-extrabold text-purple-300 tracking-wider"></div> <!-- Adjusted text size for mobile -->
         </div>
 
         <!-- Rocket -->
@@ -295,7 +293,7 @@
 
         <!-- Game Over Screen -->
         <div id="gameOverScreen" class="game-over-screen">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 drop-shadow-lg">Game Over!</h2>
+            <h2 id="gameOverMessage" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 drop-shadow-lg">Game Over!</h2>
             <p id="finalScore" class="text-xl sm:text-2xl mb-6 sm:mb-8">Your Score: 0</p>
             <p id="highScoreDisplay" class="text-lg sm:text-xl mb-3 sm:mb-4">Highest Score: 0</p>
             <p id="gamesPlayedDisplay" class="text-lg sm:text-xl mb-6 sm:mb-8">Games Played: 0</p>
@@ -346,8 +344,8 @@
 
         <!-- Touch Controls for Mobile -->
         <div class="touch-controls">
-            <button id="touchLeft" class="game-button px-6 py-3 text-2xl opacity-70">⬅️</button> <!-- Adjusted padding and text size -->
-            <button id="touchRight" class="game-button px-6 py-3 text-2xl opacity-70">➡️</button> <!-- Adjusted padding and text size -->
+            <button id="touchLeft" class="bg-transparent text-white text-4xl p-4 rounded-full opacity-70">⬅️</button> <!-- Removed game-button, added transparent background, larger text, rounded-full for touch target -->
+            <button id="touchRight" class="bg-transparent text-white text-4xl p-4 rounded-full opacity-70">➡️</button> <!-- Removed game-button, added transparent background, larger text, rounded-full for touch target -->
         </div>
 
         <!-- Removed Audio Elements as per user request (no assets) -->
@@ -1102,10 +1100,12 @@
             }
 
             // Display game over screen
-            gameOverMessage.textContent = message;
-            finalScoreDisplay.textContent = `Your Score: ${score}`;
-            highScoreDisplay.textContent = `Highest Score: ${currentUserData.highestScore}`;
-            gamesPlayedDisplay.textContent = `Games Played: ${currentUserData.gamesPlayed}`;
+            // Ensure these elements are not null before setting textContent
+            if (gameOverMessage) gameOverMessage.textContent = message;
+            if (finalScoreDisplay) finalScoreDisplay.textContent = `Your Score: ${score}`;
+            if (highScoreDisplay) highScoreDisplay.textContent = `Highest Score: ${currentUserData.highestScore}`;
+            if (gamesPlayedDisplay) gamesPlayedDisplay.textContent = `Games Played: ${currentUserData.gamesPlayed}`;
+            
             gameOverScreen.classList.add('active');
             pauseScreen.classList.remove('active'); // Ensure pause screen is hidden
         }
@@ -1481,10 +1481,29 @@
             scoreDisplay = document.getElementById('scoreDisplay');
             timerDisplay = document.getElementById('timerDisplay');
             livesEmojis = document.getElementById('livesEmojis'); 
+            
+            // Defensive check to ensure game over screen elements are found
             gameOverScreen = document.getElementById('gameOverScreen');
-            gameOverMessage = document.getElementById('gameOverMessage');
-            finalScoreDisplay = document.getElementById('finalScore');
-            restartButton = document.getElementById('restartButton');
+            if (gameOverScreen) {
+                gameOverMessage = document.getElementById('gameOverMessage');
+                finalScoreDisplay = document.getElementById('finalScore');
+                highScoreDisplay = document.getElementById('highScoreDisplay');
+                gamesPlayedDisplay = document.getElementById('gamesPlayedDisplay');
+                restartButton = document.getElementById('restartButton');
+                viewLeaderboardButton = document.getElementById('viewLeaderboardButton');
+                
+                // Detailed error logging if individual elements within gameOverScreen are null
+                if (!gameOverMessage) console.error("DOM Error: 'gameOverMessage' element not found! Check ID in HTML.");
+                if (!finalScoreDisplay) console.error("DOM Error: 'finalScoreDisplay' element not found! Check ID in HTML.");
+                if (!highScoreDisplay) console.error("DOM Error: 'highScoreDisplay' element not found! Check ID in HTML.");
+                if (!gamesPlayedDisplay) console.error("DOM Error: 'gamesPlayedDisplay' element not found! Check ID in HTML.");
+                if (!restartButton) console.error("DOM Error: 'restartButton' element not found! Check ID in HTML.");
+                if (!viewLeaderboardButton) console.error("DOM Error: 'viewLeaderboardButton' element not found! Check ID in HTML.");
+
+            } else {
+                console.error("DOM Error: 'gameOverScreen' element not found! Game Over functionality might be broken.");
+            }
+
             startScreen = document.getElementById('startScreen'); // Get start screen
             playButton = document.getElementById('playButton'); // Get play button
             touchLeftButton = document.getElementById('touchLeft');
