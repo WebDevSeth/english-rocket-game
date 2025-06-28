@@ -194,7 +194,8 @@
                 display: none;
             }
             .rocket {
-                bottom: 120px; /* Lift rocket above touch controls */
+                /* Lift rocket above touch controls on small screens */
+                bottom: 120px; 
             }
         }
 
@@ -269,66 +270,67 @@
 
         <!-- Start Screen (Main Menu) -->
         <div id="startScreen" class="start-screen active">
-            <h2 class="text-5xl font-bold mb-6 drop-shadow-lg">Word Rocket 🚀</h2>
-            <p class="text-2xl mb-4">Spell words by catching falling letters!</p>
-            <p class="text-xl mb-8 desktop-controls-info">Use ⬅️ and ➡️ arrow keys or A and D to move.</p>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 drop-shadow-lg">Word Rocket 🚀</h2>
+            <p class="text-lg sm:text-xl mb-3 sm:mb-4">Spell words by catching falling letters!</p>
+            <p class="text-base sm:text-lg mb-6 sm:mb-8 desktop-controls-info">Use ⬅️ and ➡️ arrow keys or A and D to move.</p>
 
-            <div id="authDisplay" class="flex flex-col items-center gap-4">
-                <p id="welcomeMessage" class="text-3xl font-bold mb-4">Please log in or register to play!</p>
-                <div id="authButtons" class="flex gap-4 mb-4">
-                    <button id="loginButton" class="game-button">Login</button>
-                    <button id="registerButton" class="game-button">Register</button>
+            <div id="authDisplay" class="flex flex-col items-center gap-3 sm:gap-4">
+                <p id="welcomeMessage" class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Please log in or register to play!</p>
+                <div id="authButtons" class="flex gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <button id="loginButton" class="game-button px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Login</button>
+                    <button id="registerButton" class="game-button px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Register</button>
                 </div>
-                <button id="logoutButton" class="game-button hidden mt-4 bg-red-600 hover:bg-red-700">Logout</button>
+                <button id="logoutButton" class="game-button hidden mt-3 sm:mt-4 bg-red-600 hover:bg-red-700 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Logout</button>
             </div>
 
-            <button id="playButton" class="game-button mt-8 hidden">Start Game</button> <!-- Hidden by default, shown on login -->
-            <button id="leaderboardButton" class="game-button mt-4">Leaderboard</button>
+            <button id="playButton" class="game-button mt-6 sm:mt-8 hidden px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Start Game</button> <!-- Hidden by default, shown on login -->
+            <button id="leaderboardButton" class="game-button mt-3 sm:mt-4 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Leaderboard</button>
         </div>
 
         <!-- Game Over Screen -->
         <div id="gameOverScreen" class="game-over-screen">
-            <h2 id="gameOverMessage" class="text-5xl font-bold mb-6 drop-shadow-lg">Game Over!</h2>
-            <p id="finalScore" class="text-3xl mb-8">Your Score: 0</p>
-            <p id="highScoreDisplay" class="text-2xl mb-4">Highest Score: 0</p>
-            <p id="gamesPlayedDisplay" class="text-2xl mb-8">Games Played: 0</p>
-            <button id="restartButton" class="game-button">Play Again</button>
-            <button id="viewLeaderboardButton" class="game-button mt-4">View Leaderboard</button>
+            <h2 id="gameOverMessage" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 drop-shadow-lg">Game Over!</h2>
+            <p id="finalScore" class="text-xl sm:text-2xl mb-6 sm:mb-8">Your Score: 0</p>
+            <p id="highScoreDisplay" class="text-lg sm:text-xl mb-3 sm:mb-4">Highest Score: 0</p>
+            <p id="gamesPlayedDisplay" class="text-lg sm:text-xl mb-6 sm:mb-8">Games Played: 0</p>
+            <button id="restartButton" class="game-button px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Play Again</button>
+            <button id="viewLeaderboardButton" class="game-button mt-3 sm:mt-4 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">View Leaderboard</button>
         </div>
 
         <!-- Pause Screen -->
         <div id="pauseScreen" class="pause-screen">
-            <h2 class="text-5xl font-bold mb-6 drop-shadow-lg">Paused</h2>
-            <button id="resumeButton" class="game-button">Resume Game</button>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 drop-shadow-lg">Paused</h2>
+            <button id="resumeButton" class="game-button px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Resume Game</button>
         </div>
 
         <!-- Login Modal -->
         <div id="loginModal" class="auth-modal">
-            <h2 class="text-4xl font-bold mb-6">Login</h2>
-            <input type="email" id="loginEmail" placeholder="Email" class="p-3 mb-4 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <input type="password" id="loginPassword" placeholder="Password" class="p-3 mb-6 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <button id="loginSubmit" class="game-button mb-4">Login</button>
-            <button id="closeLoginModal" class="game-button bg-gray-500 hover:bg-gray-600">Cancel</button>
-            <p id="loginMessage" class="text-red-400 mt-4"></p>
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Login</h2>
+            <input type="text" id="loginIdentifier" placeholder="Username or Email" class="p-2 sm:p-3 mb-3 sm:mb-4 rounded-lg bg-gray-700 text-white w-11/12 max-w-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 text-base sm:text-lg">
+            <input type="password" id="loginPassword" placeholder="Password" class="p-2 sm:p-3 mb-4 sm:mb-6 rounded-lg bg-gray-700 text-white w-11/12 max-w-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 text-base sm:text-lg">
+            <button id="loginSubmit" class="game-button mb-3 sm:mb-4 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Login</button>
+            <button id="closeLoginModal" class="game-button bg-gray-500 hover:bg-gray-600 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Cancel</button>
+            <p id="loginMessage" class="text-red-400 mt-3 sm:mt-4 text-sm sm:text-base"></p>
         </div>
 
         <!-- Register Modal -->
         <div id="registerModal" class="auth-modal">
-            <h2 class="text-4xl font-bold mb-6">Register</h2>
-            <input type="email" id="registerEmail" placeholder="Email" class="p-3 mb-4 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <input type="password" id="registerPassword" placeholder="Password" class="p-3 mb-6 rounded-lg bg-gray-700 text-white w-64 md:w-80 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <button id="registerSubmit" class="game-button mb-4">Register</button>
-            <button id="closeRegisterModal" class="game-button bg-gray-500 hover:bg-gray-600">Cancel</button>
-            <p id="registerMessage" class="text-red-400 mt-4"></p>
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Register</h2>
+            <input type="text" id="registerUsername" placeholder="Username" class="p-2 sm:p-3 mb-3 sm:mb-4 rounded-lg bg-gray-700 text-white w-11/12 max-w-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 text-base sm:text-lg">
+            <input type="email" id="registerEmail" placeholder="Email" class="p-2 sm:p-3 mb-3 sm:mb-4 rounded-lg bg-gray-700 text-white w-11/12 max-w-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 text-base sm:text-lg">
+            <input type="password" id="registerPassword" placeholder="Password" class="p-2 sm:p-3 mb-4 sm:mb-6 rounded-lg bg-gray-700 text-white w-11/12 max-w-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 text-base sm:text-lg">
+            <button id="registerSubmit" class="game-button mb-3 sm:mb-4 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Register</button>
+            <button id="closeRegisterModal" class="game-button bg-gray-500 hover:bg-gray-600 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Cancel</button>
+            <p id="registerMessage" class="text-red-400 mt-3 sm:mt-4 text-sm sm:text-base"></p>
         </div>
 
         <!-- Leaderboard Modal -->
         <div id="leaderboardModal" class="leaderboard-modal">
-            <h2 class="text-4xl font-bold mb-6">Top Scores</h2>
-            <div id="leaderboardList" class="text-xl text-left w-full max-w-md bg-black bg-opacity-40 p-4 rounded-lg">
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Top Scores</h2>
+            <div id="leaderboardList" class="text-base sm:text-lg text-left w-11/12 max-w-md bg-black bg-opacity-40 p-3 sm:p-4 rounded-lg">
                 <p>Loading leaderboard...</p>
             </div>
-            <button id="closeLeaderboardModal" class="game-button mt-8 bg-gray-500 hover:bg-gray-600">Close</button>
+            <button id="closeLeaderboardModal" class="game-button mt-6 sm:mt-8 bg-gray-500 hover:bg-gray-600 px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg">Close</button>
         </div>
 
         <!-- Message Box for general feedback -->
@@ -350,7 +352,7 @@
         // Firebase imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // IMPORTANT: These Firebase configuration values are currently hardcoded for immediate functionality.
         // Once confirmed working, we will replace these with Netlify environment variables securely.
@@ -427,8 +429,8 @@
         let authButtons;
         let loginButton, registerButton, logoutButton;
         let loginModal, registerModal, leaderboardModal;
-        let loginEmail, loginPassword, loginSubmit, closeLoginModal, loginMessage;
-        let registerEmail, registerPassword, registerSubmit, closeRegisterModal, registerMessage;
+        let loginIdentifierInput, loginPassword, loginSubmit, closeLoginModal, loginMessage; // Changed loginEmail to loginIdentifierInput
+        let registerUsername, registerEmail, registerPassword, registerSubmit, closeRegisterModal, registerMessage; // Added registerUsername
         let leaderboardButton, leaderboardList, closeLeaderboardModal;
         let highScoreDisplay, gamesPlayedDisplay, viewLeaderboardButton;
         let messageBox, messageText; // For custom message display instead of alert()
@@ -473,9 +475,21 @@
             gamesPlayed: 0,
             highestScore: 0,
             lastPlayed: null,
-            userName: 'Guest' // Default to 'Guest' if not logged in
+            userName: 'Guest', // Default to 'Guest' if not logged in
+            email: '' // Added email to user data for login by username lookup
         };
         let isAuthReady = false; // Flag to indicate Firebase auth state is ready
+
+        // Profanity list for username filtering
+        const PROFANE_WORDS = [
+            "ass", "bitch", "fuck", "shit", "damn", "cunt", "cock", "pussy", "dick",
+            "wanker", "bastard", "bollocks", "motherfucker", "fucker", "slut", "whore",
+            "nigger", "faggot", "retard", // Removed 'gay', 'dyke', 'tranny' as they can be used in non-offensive contexts
+            "pedo", "incest", "rape", // More explicit, generally universally offensive terms
+            "kike", "chink", "gook", "spic", "wetback", // Racial slurs
+            "cracker", "redneck", // Other derogatory terms
+            // Add or remove words as you deem appropriate for your game's audience
+        ];
 
         // --- Utility Functions ---
 
@@ -564,7 +578,7 @@
         function showLoginModal() {
             hideAllScreens();
             loginModal.classList.add('active');
-            loginEmail.value = '';
+            loginIdentifierInput.value = ''; // Reset username/email input
             loginPassword.value = '';
             loginMessage.textContent = '';
         }
@@ -572,6 +586,7 @@
         function showRegisterModal() {
             hideAllScreens();
             registerModal.classList.add('active');
+            registerUsername.value = ''; // Reset username input
             registerEmail.value = '';
             registerPassword.value = '';
             registerMessage.textContent = '';
@@ -620,28 +635,71 @@
         // --- Firebase Authentication & Firestore Functions ---
 
         /**
+         * Checks if a username contains any profane words.
+         * @param {string} username - The username to check.
+         * @returns {boolean} True if profane, false otherwise.
+         */
+        function isUsernameProfane(username) {
+            const lowerCaseUsername = username.toLowerCase();
+            for (const word of PROFANE_WORDS) {
+                // Use a regex to match whole words to avoid partial matches (e.g., 'ass' in 'class')
+                const regex = new RegExp(`\\b${word}\\b`, 'i'); // '\\b' is word boundary
+                if (regex.test(lowerCaseUsername)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Checks if a username is already taken in Firestore.
+         * @param {string} username - The username to check.
+         * @returns {Promise<boolean>} True if taken, false otherwise.
+         */
+        async function isUsernameTaken(username) {
+            if (!isAuthReady || !db) return true; // Treat as taken if Firebase is not ready
+            const lowerCaseUsername = username.toLowerCase();
+            try {
+                // Check if a document with this username (as ID) exists in the username_map collection
+                const usernameDocRef = doc(db, `artifacts/${appId}/username_map`, lowerCaseUsername);
+                const usernameDocSnap = await getDoc(usernameDocRef);
+                return usernameDocSnap.exists();
+            } catch (error) {
+                console.error("Error checking username existence:", error);
+                showMessageBox(`Error checking username: ${error.message}`, 'error');
+                return true; // Assume taken to be safe on error
+            }
+        }
+
+        /**
          * Updates the UI based on user's authentication status.
          * @param {object|null} user - The Firebase User object or null if not logged in.
          */
         function updateAuthUI(user) {
             if (user) { // User is logged in
                 userId = user.uid; // Make sure userId is set from the authenticated user
-                currentUserData.userName = user.email ? user.email.split('@')[0] : 'User'; // Use email part as default username
+                // Display username if available, fallback to email prefix or 'User'
+                currentUserData.userName = currentUserData.userName || (user.email ? user.email.split('@')[0] : 'User');
+                currentUserData.email = user.email; // Store email in currentUserData
+
                 welcomeMessage.textContent = `Welcome, ${currentUserData.userName}!`;
                 authButtons.classList.add('hidden');
                 logoutButton.classList.remove('hidden');
                 playButton.classList.remove('hidden'); // Show play button when logged in
                 console.log("User logged in with ID:", userId);
                 showMessageBox(`Logged in as ${currentUserData.userName}`, 'success');
+                userIdDisplay.textContent = `UID: ${userId}`; // Show UID for debugging/testing
+                userIdDisplay.classList.remove('hidden');
             } else { // User is not logged in
                 userId = null; // Explicitly set to null
-                currentUserData.userName = 'Guest'; // Default name for unauthenticated users
+                currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest', email: '' }; // Reset user data
                 welcomeMessage.textContent = `Please log in or register to play!`; // Prompt for login
                 authButtons.classList.remove('hidden'); // Ensure buttons are visible if not logged in
                 logoutButton.classList.add('hidden');
                 playButton.classList.add('hidden'); // Hide play button when not logged in
                 console.log("User is not logged in.");
                 showMessageBox(`You are not logged in. Please login or register to save your progress!`, 'info');
+                userIdDisplay.classList.add('hidden'); // Hide UID
             }
         }
 
@@ -660,9 +718,13 @@
 
                 if (userDocSnap.exists()) {
                     currentUserData = { ...currentUserData, ...userDocSnap.data() };
+                    // Ensure userName is loaded from fetched data
+                    currentUserData.userName = currentUserData.userName || (auth.currentUser ? auth.currentUser.email.split('@')[0] : 'User');
                     console.log("User data loaded:", currentUserData);
                 } else {
                     console.log("No existing user data for", uid, ". Initializing new data.");
+                    // Initialize with email from auth.currentUser if available
+                    currentUserData.email = auth.currentUser ? auth.currentUser.email : '';
                     await setDoc(userDocRef, currentUserData, { merge: true }); // Create initial data
                     console.log("New user data initialized:", currentUserData);
                 }
@@ -693,7 +755,7 @@
         }
 
         /**
-         * Handles user registration with email and password.
+         * Handles user registration with email, username, and password.
          */
         async function handleRegister() {
             if (!isAuthReady || !auth) { // Ensure auth is initialized
@@ -701,25 +763,63 @@
                 return;
             }
 
-            const email = registerEmail.value;
-            const password = registerPassword.value;
+            const username = registerUsername.value.trim();
+            const email = registerEmail.value.trim();
+            const password = registerPassword.value.trim();
             registerMessage.textContent = ''; // Clear previous messages
 
-            if (!email || !password) {
-                registerMessage.textContent = 'Please enter both email and password.';
+            if (!username || !email || !password) {
+                registerMessage.textContent = 'Please enter username, email, and password.';
                 return;
             }
             if (password.length < 6) {
                 registerMessage.textContent = 'Password must be at least 6 characters long.';
                 return;
             }
+            if (username.length < 3 || username.length > 20) {
+                registerMessage.textContent = 'Username must be 3-20 characters long.';
+                return;
+            }
+            if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
+                registerMessage.textContent = 'Username can only contain letters, numbers, underscores, periods, or hyphens.';
+                return;
+            }
+
+
+            if (isUsernameProfane(username)) {
+                registerMessage.textContent = 'Username contains forbidden words. Please choose another.';
+                return;
+            }
+
+            if (await isUsernameTaken(username)) {
+                registerMessage.textContent = 'This username is already taken. Please choose another.';
+                return;
+            }
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                userId = user.uid; // Update global userId
-                currentUserData.userName = user.email ? user.email.split('@')[0] : 'User'; // Use email part as default username
-                await saveUserData(userId); // Save initial user data
+                
+                // Set the current user's data locally
+                userId = user.uid;
+                currentUserData.userName = username;
+                currentUserData.email = email; // Ensure email is saved in user data
+                
+                // Save user data to Firestore, including the chosen username and email
+                await setDoc(doc(db, `artifacts/${appId}/users/${userId}/gameStats`, 'data'), {
+                    userName: username,
+                    email: email, // Store email for username-based login lookup
+                    gamesPlayed: 0,
+                    highestScore: 0,
+                    lastPlayed: null
+                });
+
+                // Create a mapping from username (lowercase) to UID for uniqueness check and login lookup
+                await setDoc(doc(db, `artifacts/${appId}/username_map`, username.toLowerCase()), {
+                    userId: userId,
+                    email: email // Also store email here for quicker lookup during login
+                });
+
                 showMessageBox('Registration successful! You are now logged in.', 'success');
                 showStartScreen(); // Go back to start screen after registration
             } catch (error) {
@@ -728,6 +828,8 @@
                     errorMessage = 'Email already in use. Try logging in.';
                 } else if (error.code === 'auth/invalid-email') {
                     errorMessage = 'Invalid email address.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Password is too weak. Please choose a stronger one.';
                 } else {
                     errorMessage = `Error: ${error.message}`;
                 }
@@ -737,37 +839,67 @@
         }
 
         /**
-         * Handles user login with email and password.
+         * Handles user login with username or email, and password.
          */
         async function handleLogin() {
-            if (!isAuthReady || !auth) { // Ensure auth is initialized
+            if (!isAuthReady || !auth) {
                 showMessageBox("Firebase authentication is not ready. Please try again in a moment.", 'error');
                 return;
             }
 
-            const email = loginEmail.value;
-            const password = loginPassword.value;
-            loginMessage.textContent = ''; // Clear previous messages
+            const loginIdentifier = loginIdentifierInput.value.trim();
+            const password = loginPassword.value.trim();
+            loginMessage.textContent = '';
 
-            if (!email || !password) {
-                loginMessage.textContent = 'Please enter both email and password.';
+            if (!loginIdentifier || !password) {
+                loginMessage.textContent = 'Please enter username/email and password.';
                 return;
             }
 
+            let emailToLogin = loginIdentifier; // Assume it's an email first
+
+            // Simple check if it *looks* like an email (contains @ and .)
+            const isEmailFormat = loginIdentifier.includes('@') && loginIdentifier.includes('.');
+
+            if (!isEmailFormat) {
+                // If it doesn't look like an email, try to find email via username map
+                try {
+                    const usernameDocRef = doc(db, `artifacts/${appId}/username_map`, loginIdentifier.toLowerCase());
+                    const usernameDocSnap = await getDoc(usernameDocRef);
+
+                    if (usernameDocSnap.exists()) {
+                        emailToLogin = usernameDocSnap.data().email;
+                        if (!emailToLogin) {
+                            loginMessage.textContent = 'Could not retrieve email for this username. Please try logging in with your email directly.';
+                            return;
+                        }
+                    } else {
+                        loginMessage.textContent = 'Invalid username or email.';
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Error looking up username for login:", error);
+                    loginMessage.textContent = `Error during login: ${error.message}`;
+                    return;
+                }
+            }
+
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
                 const user = userCredential.user;
-                userId = user.uid; // Update global userId
-                currentUserData.userName = user.email ? user.email.split('@')[0] : 'User'; // Update username if logging back in
-                await fetchUserData(userId); // Fetch existing user data
+                userId = user.uid;
+                
+                // Fetch user data including the username to update currentUserData
+                await fetchUserData(userId); 
                 showMessageBox('Login successful!', 'success');
-                showStartScreen(); // Go back to start screen after login
+                showStartScreen();
             } catch (error) {
-                let errorMessage = 'Login failed.';
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { // Added auth/invalid-credential
-                    errorMessage = 'Invalid email or password.';
+                let errorMessage = 'Login failed. Invalid username/email or password.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Invalid username/email or password.';
                 } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Invalid email address.';
+                    // This error might occur if we *thought* it was an email but it wasn't valid, or if the username lookup failed silently earlier.
+                    errorMessage = 'Invalid username/email format or user not found.';
                 } else {
                     errorMessage = `Error: ${error.message}`;
                 }
@@ -783,7 +915,7 @@
             try {
                 if (auth) await signOut(auth); // Safely call signOut
                 userId = null; // Reset userId on logout
-                currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest' }; // Reset user data
+                currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest', email: '' }; // Reset user data
                 showMessageBox('Logged out successfully.', 'info');
                 showStartScreen(); // Return to start screen
             } catch (error) {
@@ -1257,6 +1389,7 @@
 
         // --- Input Handling ---
         let keysPressed = {}; // Keep track of currently pressed keys. Initialized at top-level scope.
+        // Moved touchMoveDirection to global scope for proper accessibility by updateRocketMove
         let touchMoveDirection = 0; // -1 for left, 1 for right, 0 for none
 
         function handleKeyDown(event) {
@@ -1298,6 +1431,7 @@
             let moveAmount = 0;
             let rotationOffset = 0; // Offset from base rotation
 
+            // Keyboard input
             if (keysPressed['arrowleft'] || keysPressed['a']) {
                 moveAmount -= ROCKET_SPEED;
                 rotationOffset = -15; // Tilt left relative to base
@@ -1307,10 +1441,14 @@
                 rotationOffset = 15; // Tilt right relative to base
             }
             // Add touch input to movement
-            if (touchMoveDirection !== 0) {
+            // Only apply touch movement if no keyboard keys are pressed AND a touch direction is active
+            if (Object.values(keysPressed).every(val => val === false) && touchMoveDirection !== 0) {
                 moveAmount += touchMoveDirection * ROCKET_SPEED;
                 rotationOffset = touchMoveDirection * 15; // Tilt based on touch direction
             }
+            // If both touch and keyboard are active, keyboard takes precedence or they combine based on game logic
+            // For simplicity, current logic just adds them. If only one should apply, add more conditional logic.
+
 
             rocketX += moveAmount;
 
@@ -1360,11 +1498,12 @@
             loginModal = document.getElementById('loginModal');
             registerModal = document.getElementById('registerModal');
             leaderboardModal = document.getElementById('leaderboardModal');
-            loginEmail = document.getElementById('loginEmail');
+            loginIdentifierInput = document.getElementById('loginIdentifier'); // Corrected ID
             loginPassword = document.getElementById('loginPassword');
             loginSubmit = document.getElementById('loginSubmit');
             closeLoginModal = document.getElementById('closeLoginModal');
             loginMessage = document.getElementById('loginMessage');
+            registerUsername = document.getElementById('registerUsername'); // New username input
             registerEmail = document.getElementById('registerEmail');
             registerPassword = document.getElementById('registerPassword');
             closeRegisterModal = document.getElementById('closeRegisterModal');
@@ -1413,7 +1552,7 @@
             playButton.addEventListener('click', startGame); // Added explicit listener here for the hidden button
 
             // Touch controls: Changed to only set direction, main loop handles movement
-            let touchMoveDirection = 0; // -1 for left, 1 for right, 0 for none
+            // touchMoveDirection is now a global variable, no re-declaration here.
 
             touchLeftButton.addEventListener('touchstart', (e) => {
                 e.preventDefault(); // Prevent scrolling
@@ -1464,13 +1603,13 @@
                         userId = user.uid;
                         isAuthReady = true; // Firebase is ready
                         console.log("Firebase Auth state changed. User ID:", userId);
-                        currentUserData.userName = user.email ? user.email.split('@')[0] : 'User'; // Use email part as username
+                        // Fetch user data including the username to update currentUserData
                         await fetchUserData(userId);
                         updateAuthUI(user); // Pass the user object to updateAuthUI
                     } else {
                         // No user logged in, explicitly set userId to null
                         userId = null;
-                        currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest' };
+                        currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest', email: '' };
                         isAuthReady = true; // Firebase is ready for unauthenticated state too
                         updateAuthUI(null); // Pass null to indicate no user
                         console.log("User is not logged in. Prompting for sign-in/registration.");
