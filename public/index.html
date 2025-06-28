@@ -152,13 +152,18 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
+        /* Smallest text size for mobile labels */
+        .text-xxs {
+            font-size: 0.625rem; /* 10px */
+        }
+
         /* Small pause button style */
         .pause-button {
             background: none; /* Removed background */
             color: white;
             padding: 0.5rem 0.8rem;
             border-radius: 0; /* Removed border-radius */
-            font-size: 1.2rem; /* Tiny size */
+            font-size: 0.625rem; /* 10px - Adjusted to be very small */
             font-weight: bold;
             cursor: pointer;
             border: none;
@@ -250,15 +255,15 @@
             </div>
 
             <!-- Score, Timer & Pause Button (Right-aligned group) -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
                 <div class="flex flex-col items-end">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-base sm:text-xl font-bold">SCORE:</span> <!-- Adjusted score text size -->
-                        <span id="scoreDisplay" class="text-xl sm:text-2xl font-bold">0</span> <!-- Adjusted score display size -->
+                    <div class="flex items-center space-x-1">
+                        <span class="text-xxs font-bold">SCORE:</span> <!-- Adjusted score text size to 10px -->
+                        <span id="scoreDisplay" class="text-xs sm:text-sm font-bold">0</span> <!-- Adjusted score display size to 12px -->
                     </div>
-                    <div class="flex items-center space-x-2 mt-1">
-                        <span class="text-base sm:text-xl font-bold">⏱️</span> <!-- Adjusted timer icon size -->
-                        <span id="timerDisplay" class="text-xl sm:text-2xl font-bold">60</span> <!-- Adjusted timer display size -->
+                    <div class="flex items-center space-x-1 mt-0.5">
+                        <span class="text-xxs font-bold">⏱️</span> <!-- Adjusted timer icon size to 10px -->
+                        <span id="timerDisplay" class="text-xs sm:text-sm font-bold">60</span> <!-- Adjusted timer display size to 12px -->
                     </div>
                 </div>
                 <!-- Pause Button -->
