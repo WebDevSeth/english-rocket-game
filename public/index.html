@@ -689,7 +689,7 @@
                 console.log("User logged in with ID:", userId);
                 showMessageBox(`Logged in as ${currentUserData.userName}`, 'success');
                 userIdDisplay.textContent = `UID: ${userId}`; // Show UID for debugging/testing
-                userIdDisplay.classList.remove('hidden');
+                //userIdDisplay.classList.remove('hidden');
             } else { // User is not logged in
                 userId = null; // Explicitly set to null
                 currentUserData = { gamesPlayed: 0, highestScore: 0, lastPlayed: null, userName: 'Guest', email: '' }; // Reset user data
