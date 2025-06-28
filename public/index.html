@@ -246,34 +246,34 @@
 
     <div id="gameContainer" class="game-container relative">
 
-        <!-- Game Header: Lives, Score, Timer (Top corners) -->
-        <div id="headerBar" class="absolute top-4 left-4 right-4 flex justify-between items-center text-white z-10 p-2 bg-black bg-opacity-30 rounded-lg shadow-lg">
-            <!-- Lives (Left) -->
-            <div class="flex items-center space-x-2">
-                <div id="livesEmojis" class="text-base sm:text-xl pt-1 pb-1"></div>
-                <span id="userIdDisplay" class="text-xs font-semibold text-gray-400 ml-4 hidden"></span> <!-- This element will remain hidden -->
-            </div>
-
-            <!-- Score, Timer & Pause Button (Right-aligned group) -->
-            <div class="flex items-center space-x-2">
-                <div class="flex flex-col items-end">
-                    <div class="flex items-center space-x-1">
-                        <span class="text-xxs font-bold">SCORE:</span> <!-- Adjusted score text size to 10px -->
-                        <span id="scoreDisplay" class="text-xs sm:text-sm font-bold">0</span> <!-- Adjusted score display size to 12px -->
-                    </div>
-                    <div class="flex items-center space-x-1 mt-0.5">
-                        <span class="text-xxs font-bold">⏱️</span> <!-- Adjusted timer icon size to 10px -->
-                        <span id="timerDisplay" class="text-xs sm:text-sm font-bold">60</span> <!-- Adjusted timer display size to 12px -->
-                    </div>
+        <!-- Game Header: Lives, Score, Timer, and Target Word (Unified Top Bar) -->
+        <div id="headerBar" class="absolute top-4 left-4 right-4 flex flex-col items-center text-white z-10 p-2 bg-black bg-opacity-30 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center w-full">
+                <!-- Lives (Left) -->
+                <div class="flex items-center space-x-2">
+                    <div id="livesEmojis" class="text-base sm:text-xl pt-1 pb-1"></div>
+                    <span id="userIdDisplay" class="text-xs font-semibold text-gray-400 ml-4 hidden"></span> <!-- This element will remain hidden -->
                 </div>
-                <!-- Pause Button -->
-                <button id="pauseButton" class="pause-button">⏸️</button>
-            </div>
-        </div>
 
-        <!-- Target Word Display (Centered independently at top) -->
-        <div class="absolute top-[28px] left-1/2 -translate-x-1/2 flex flex-col items-center text-white z-10 p-2 pb-3">
-            <div id="targetWordDisplay" class="text-xl sm:text-2xl md:text-4xl font-extrabold text-purple-300 tracking-wider"></div>
+                <!-- Score, Timer & Pause Button (Right-aligned group) -->
+                <div class="flex items-center space-x-2">
+                    <div class="flex flex-col items-end">
+                        <div class="flex items-center space-x-1">
+                            <span class="text-xxs font-bold">SCORE:</span> <!-- Adjusted score text size to 10px -->
+                            <span id="scoreDisplay" class="text-xs sm:text-sm font-bold">0</span> <!-- Adjusted score display size to 12px -->
+                        </div>
+                        <div class="flex items-center space-x-1 mt-0.5">
+                            <span class="text-xxs font-bold">⏱️</span> <!-- Adjusted timer icon size to 10px -->
+                            <span id="timerDisplay" class="text-xs sm:text-sm font-bold">60</span> <!-- Adjusted timer display size to 12px -->
+                        </div>
+                    </div>
+                    <!-- Pause Button -->
+                    <button id="pauseButton" class="pause-button">⏸️</button>
+                </div>
+            </div>
+            <!-- Target Word Display (Now inside headerBar, centered horizontally by parent's items-center) -->
+            <!-- Adjusted vertical positioning and padding for better visual balance within the header bar -->
+            <div id="targetWordDisplay" class="text-xl sm:text-2xl md:text-4xl font-extrabold text-purple-300 tracking-wider mt-2 pb-3"></div>
         </div>
 
         <!-- Rocket -->
